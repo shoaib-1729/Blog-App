@@ -1,11 +1,6 @@
 {
+    "version": 3,
     "installCommand": "npm install",
     "buildCommand": "npm run build",
-    "outputDirectory": "dist",
-    "devCommand": "npm run dev",
-    "functions": {
-        "**/*.js": {
-            "runtime": "nodejs20.x"
-        }
-    }
+    "outputDirectory": "dist"
 }
