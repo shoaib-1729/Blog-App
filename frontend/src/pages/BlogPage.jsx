@@ -20,7 +20,6 @@ import { setIsOpen } from "../utils/commentSlice";
 import { handleSaveBlog, handleFollowCreator } from "../utils/helperFunc";
 import DeleteConfirmation from "../react-components/DeleteConfirmation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-// Light theme
 import { prism } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { updateUser } from "../utils/userSlice";
 
@@ -38,7 +37,6 @@ const BlogPage = () => {
     email,
     id: userId,
     following,
-    // profilePic,
   } = useSelector((state) => state.user);
   const { likedBy, comments, content, blogId } = useSelector(
     (state) => state.selectedBlog
@@ -247,7 +245,7 @@ const BlogPage = () => {
     try {
       const {
         data: { blog },
-      } = await axios.get(`${import.meta.env.envURL}/blogs/${id}`, {
+      } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/blogs/${id}`, {
         signal: controller.signal,
       });
 
