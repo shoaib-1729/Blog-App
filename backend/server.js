@@ -4,7 +4,7 @@ const dbConnect = require("./config/dbConnect.js");
 const userRoute = require("./routes/userRoute.js");
 const blogRoute = require("./routes/blogRoute.js");
 const { cloudinaryConfig } = require("./config/cloudinaryConfig.js");
-const { PORT, FRONTEND_URL } = require("./config/dotenv.config.js");
+const { PORT } = require("./config/dotenv.config.js");
 const logger = require("./utils/logger.js");
 
 // create server
@@ -16,8 +16,13 @@ app.use(cors());
 // middleware
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Backend Chal Raha Hai.");
+// Health Check Route
+app.get("/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        uptime: process.uptime(), // server kitni der se chal raha hai
+        timestamp: new Date(), // abhi ka time
+    });
 });
 
 // routes
@@ -26,9 +31,9 @@ app.use("/api/v1", blogRoute);
 
 // listen to server
 app.listen(PORT, () => {
-  // cloudinary config
-  cloudinaryConfig();
-  logger.info("Server is running on port 3000");
-  // connect db
-  dbConnect();
+    // cloudinary config
+    cloudinaryConfig();
+    logger.info("Server is running on port 3000");
+    // connect db
+    dbConnect();
 });
