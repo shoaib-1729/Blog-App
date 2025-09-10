@@ -41,21 +41,21 @@
     "shadcn": "^2.4.0-canary.17",
     "tailwind-merge": "^3.0.2",
     "textarea": "^0.3.0",
-    "tw-animate-css": "^1.2.4"
+    "tw-animate-css": "^1.2.4",
+    "vite": "^6.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.14",
+    "postcss": "^8.5.3",
+    "autoprefixer": "^10.4.21"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "postcss": "^8.5.3",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^4.0.14",
-    "vite": "^6.2.0"
+    "prettier": "^3.6.2"
   }
 }
