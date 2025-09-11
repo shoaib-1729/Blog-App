@@ -3,7 +3,7 @@
   <h1 style="font-size: 100px; vertical-align: middle;">BloomVerse</span> – A Comprehensive Blogging Platform</h1>
 </p>
 
-BlogSphere is a modern, full-stack blogging platform designed to empower users to create, share, and discover engaging content. It offers a rich set of features, including user authentication, blog post management, commenting, liking, saving, and more. Whether you're a seasoned blogger or just starting out, BlogSphere provides the tools and community to thrive.
+BloomVerse is a modern, full-stack blogging platform designed to empower users to create, share, and discover engaging content. It offers a rich set of features, including user authentication, blog post management, commenting, liking, saving, and more. Whether you're a seasoned blogger or just starting out, BlogSphere provides the tools and community to thrive.
 
 ## 🚀 Key Features
 
