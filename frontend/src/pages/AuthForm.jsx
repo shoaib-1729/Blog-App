@@ -24,19 +24,28 @@ const AuthForm = ({ type }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // reset form on type change (signin/signup/forgot)
+  // reset form on type change (signin/signup)
   useEffect(() => {
-    setUserData(() => ({
-      name: "",
-      email: "",
-      password: "",
-    }));
+    if (type === "signin") {
+      setUserData(() => ({
+        email: userData.email || "",
+        password: userData.password || "",
+      }));
+    } else {
+      setUserData(() => ({
+        name: "",
+        email: "",
+        password: "",
+      }));
+    }
   }, [type]);
 
   // disable/enable button dynamically
   useEffect(() => {
     if (type === "signup") {
-      setIsButtonDisabled(!(userData.name && userData.email && userData.password));
+      setIsButtonDisabled(
+        !(userData.name && userData.email && userData.password)
+      );
     } else if (type === "signin") {
       setIsButtonDisabled(!(userData.email && userData.password));
     } else if (type === "forgot") {
@@ -47,7 +56,7 @@ const AuthForm = ({ type }) => {
   // 🔹 Google Auth
   async function handleGoogleAuth() {
     try {
-      setLoading(true); 
+      setLoading(true);
       const gUser = await googleAuth();
       if (!gUser) return;
 
@@ -62,7 +71,8 @@ const AuthForm = ({ type }) => {
       toast.success(res.data.message || "Login successful");
       navigate("/");
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || "Google sign-in failed.";
+      const errorMessage =
+        err?.response?.data?.message || "Google sign-in failed.";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -74,10 +84,7 @@ const AuthForm = ({ type }) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const endpoint =
-          type === "signup"
-          ? "signup"
-          : "signin";
+      const endpoint = type === "signup" ? "signup" : "signin";
 
       const res = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/${endpoint}`,
@@ -117,9 +124,7 @@ const AuthForm = ({ type }) => {
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-full max-w-md p-6">
         <h1 className="mb-6 text-2xl font-semibold">
-          {type === "signup"
-            ? "Sign Up"
-            : "Sign In"}
+          {type === "signup" ? "Sign Up" : "Sign In"}
         </h1>
 
         <form onSubmit={handleAuthFormSubmit} className="space-y-4">
@@ -196,10 +201,10 @@ const AuthForm = ({ type }) => {
             {loading
               ? "Please wait..."
               : type === "signup"
-              ? "Register"
-              : type === "forgot"
-              ? "Send Reset Link"
-              : "Sign In"}
+                ? "Register"
+                : type === "forgot"
+                  ? "Send Reset Link"
+                  : "Sign In"}
           </Button>
         </form>
 
@@ -241,18 +246,6 @@ const AuthForm = ({ type }) => {
           {type === "signup" && (
             <p>
               Already have an account?{" "}
-              <Link
-                to="/signin"
-                className="text-blue-600 hover:underline font-medium"
-              >
-                Sign in
-              </Link>
-            </p>
-          )}
-
-          {type === "forgot" && (
-            <p>
-              Back to{" "}
               <Link
                 to="/signin"
                 className="text-blue-600 hover:underline font-medium"
