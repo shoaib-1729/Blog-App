@@ -210,6 +210,6 @@ If you have any questions or suggestions, please feel free to contact us at [you
 
 ## 💖 Thanks
 
-Thank you for checking out BlogSphere! We hope you find it useful and enjoyable.
+Thank you for checking out BloomVerse! We hope you find it useful and enjoyable.
 
 This is written by [readme.ai](https://readme-generator-phi.vercel.app/), your go-to platform for generating beautiful and informative README files.
