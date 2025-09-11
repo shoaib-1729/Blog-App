@@ -11,7 +11,19 @@ const logger = require("./utils/logger.js");
 const app = express();
 
 // cors
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            "https://blog-app-1729.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:5174",
+        ],
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization", "x-requested-with"],
+    })
+);
 
 // middleware
 app.use(express.json());

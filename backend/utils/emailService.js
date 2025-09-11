@@ -17,7 +17,7 @@ async function sendVerificationEmail(user) {
         text: "Please verify your email",
         html: `
       <h1>Please click the link to verify your email</h1>
-      <a href="${FRONTEND_URL}/verify-user/${verificationToken}">Verify Email</a>
+      <a href="${FRONTEND_URL}/verify-email/${verificationToken}">Verify Email</a>
     `,
     });
 }

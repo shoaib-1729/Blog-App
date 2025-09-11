@@ -75,6 +75,10 @@ const Navbar = () => {
     setMenuOpen(false);
   }, [location.pathname]);
 
+if(!token){
+  return null
+}
+
   return (
     <nav className="border-b drop-shadow">
       <div className="max-w-[90vw] mx-auto px-4 h-[60px] flex items-center justify-between">

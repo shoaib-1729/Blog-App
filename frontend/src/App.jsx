@@ -73,7 +73,7 @@ function App() {
           <Route path="/blog/:id" element={<BlogPage />} />
 
           <Route
-            path="/verify-user/:verificationToken"
+            path="/verify-email/:verificationToken"
             element={<VerifyUser />}
           />
           <Route
