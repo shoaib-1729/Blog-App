@@ -23,6 +23,7 @@ const AddBlog = () => {
     tag: [],
   });
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+   const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
   const editorjsRef = useRef(null);
@@ -201,6 +202,9 @@ const AddBlog = () => {
       } else {
         toast.error(err.response?.data?.message || "Error updating user");
       }
+    }finally {
+      // loader stop
+      setLoading(false); 
     }
   }
 
@@ -227,6 +231,9 @@ const AddBlog = () => {
     e.preventDefault();
     // disable button
     setIsButtonDisabled(true);
+
+    // loader start
+     setLoading(true);
 
     let formData = new FormData();
     for (let data of Object.entries(blogData)) {
@@ -271,6 +278,9 @@ const AddBlog = () => {
       } else {
         toast.error(err.response?.data?.message || "Error updating user");
       }
+    }finally {
+      // loader stop
+      setLoading(false); 
     }
   }
 
@@ -473,17 +483,22 @@ const AddBlog = () => {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isButtonDisabled}
+            disabled={isButtonDisabled || loading}
             className={`
       w-full sm:w-40 cursor-pointer
-      ${isButtonDisabled ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}
+      ${isButtonDisabled || loading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}
     `}
           >
-            {blogData.draft
+            {loading && (
+              <span className="loader border-2 border-t-transparent border-white rounded-full w-4 h-4 animate-spin mr-2"></span>
+            )}
+            {loading
+              ? "Please wait..."
+              : blogData.draft
               ? "Save as Draft"
               : id
-                ? "Update Blog"
-                : "Publish Blog"}
+              ? "Update Blog"
+              : "Publish Blog"}
           </Button>
         </div>
       </form>
