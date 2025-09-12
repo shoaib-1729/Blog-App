@@ -118,41 +118,106 @@ async function createBlog(req, res) {
 
     const draft = req.body.draft === "true" ? true : false;
 
-    const content = JSON.parse(req.body.content);
-    const tag = JSON.parse(req.body.tag);
+    // Add JSON parsing error handling
+    let content, tag;
+    try {
+      content = JSON.parse(req.body.content);
+      tag = JSON.parse(req.body.tag);
+    } catch (parseError) {
+      logger.error("JSON Parse Error:", parseError);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid JSON data in request",
+        error: parseError.message,
+      });
+    }
 
     const { image, images } = req.files;
 
-    // validations
-    if (!title) {
+    // Enhanced validations
+    if (!title || title.trim().length === 0) {
       return res.status(400).json({
         success: false,
         message: "Please enter the title",
       });
     }
-    if (!description) {
+
+    if (title.trim().length > 200) {
       return res.status(400).json({
         success: false,
-        message: "Please enter the title",
+        message: "Title should be less than 200 characters",
       });
     }
-    if (!content) {
+
+    if (!description || description.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter the description",
+      });
+    }
+
+    if (description.trim().length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Description should be less than 500 characters",
+      });
+    }
+
+    if (!content || !content.blocks || content.blocks.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Please enter the content",
       });
     }
-    if (!image) {
+
+    // Content length validation
+    if (content.blocks.length > 50) {
       return res.status(400).json({
         success: false,
-        message: "Please select the image",
+        message: "Blog content is too long (maximum 50 blocks allowed)",
       });
     }
-    if (!tag) {
-      return res.status(404).json({
+
+    if (!image || image.length === 0) {
+      return res.status(400).json({
         success: false,
-        message: "Please add tag",
+        message: "Please select the cover image",
       });
+    }
+
+    // File size validation (5MB limit)
+    if (image[0].size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: "Cover image size should be less than 5MB",
+      });
+    }
+
+    if (!tag || tag.length === 0) {
+      return res.status(400).json({
+        // Fixed from 404 to 400
+        success: false,
+        message: "Please add at least one tag",
+      });
+    }
+
+    if (tag.length > 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 10 tags allowed",
+      });
+    }
+
+    // Validate content images size
+    if (images && images.length > 0) {
+      for (let img of images) {
+        if (img.size > 5 * 1024 * 1024) {
+          return res.status(400).json({
+            success: false,
+            message: "Content images should be less than 5MB each",
+          });
+        }
+      }
     }
 
     // blog id wala kaam karna hoga
@@ -166,7 +231,7 @@ async function createBlog(req, res) {
       "-" +
       uuidv4().substring(0, 7);
 
-    //      check user with id creator exists
+    // Check user with id creator exists
     const author = await User.findById(creator);
 
     // creator not there -> early return
@@ -177,69 +242,130 @@ async function createBlog(req, res) {
       });
     }
 
-    // image upload cludinary pr
-    // images -> content images
+    // Rate limiting check - ensure user doesn't create too many blogs
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
+    const blogsToday = await Blog.countDocuments({
+      creator: creator,
+      createdAt: { $gte: today },
+    });
+
+    if (blogsToday >= 5) {
+      // Limit 5 blogs per day
+      return res.status(429).json({
+        success: false,
+        message: "Daily blog creation limit reached (5 blogs per day)",
+      });
+    }
+
+    // image upload cloudinary pr
+    // images -> content images
     let imageIndex = 0;
     for (let i = 0; i < content.blocks.length; i++) {
       // har block nikaalo
       const block = content.blocks[i];
 
-      if (block.type == "image" && block.data.file.image) {
-        const { secure_url, public_id } = await cloudinaryImageUpload(
-          `data:image/jpeg;base64,${images[imageIndex].buffer.toString(
-            "base64"
-          )}`
-        );
+      if (
+        block.type == "image" &&
+        block.data &&
+        block.data.file &&
+        block.data.file.image
+      ) {
+        if (imageIndex < images.length) {
+          try {
+            const { secure_url, public_id } = await cloudinaryImageUpload(
+              `data:image/jpeg;base64,${images[imageIndex].buffer.toString(
+                "base64"
+              )}`
+            );
 
-        // Only update URL & imageId, rest untouched
-        block.data.file.url = secure_url;
-        block.data.file.imageId = public_id;
+            // Only update URL & imageId, rest untouched
+            block.data.file.url = secure_url;
+            block.data.file.imageId = public_id;
 
-        // caption ko untouched chhod do
-        imageIndex++;
+            // caption ko untouched chhod do
+            imageIndex++;
+          } catch (uploadError) {
+            logger.error("Error uploading content image:", uploadError);
+            return res.status(500).json({
+              success: false,
+              message: "Error uploading content images",
+              error: uploadError.message,
+            });
+          }
+        }
       }
     }
 
     // main image bhi upload kardo cloudinary par
-    // memory storage -> no file path given by multer -> use buffer to upload the file
-    const { secure_url, public_id } = await cloudinaryImageUpload(
-      `data:image/jpeg;base64,${image[0].buffer.toString("base64")}`
-    );
-
-    const blogData = {
-      title,
-      description,
-      creator,
-      image: secure_url,
-      imageId: public_id,
-      blogId: randomId,
-      content,
-      tag,
-      draft,
-    };
-
-    // yaha pr image:url bhi aayega, image multer se aa rahi hogi
-    const blog = await Blog.create(blogData);
-
-    // blog create -> add blogs in user collection
-    await User.findByIdAndUpdate(creator, { $push: { blogs: blog._id } });
-
-    // agar draft true hai yeh dikhaao
-    if (draft) {
-      return res.status(200).json({
-        success: true,
-        message:
-          "Blog saved as draft. You can publish or edit it anytime from your settings.",
+    let mainImageUrl, mainImageId;
+    try {
+      const { secure_url, public_id } = await cloudinaryImageUpload(
+        `data:image/jpeg;base64,${image[0].buffer.toString("base64")}`
+      );
+      mainImageUrl = secure_url;
+      mainImageId = public_id;
+    } catch (uploadError) {
+      logger.error("Error uploading main image:", uploadError);
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading cover image",
+        error: uploadError.message,
       });
     }
 
-    return res.json({
-      success: true,
-      message: "Blog published",
-    });
+    const blogData = {
+      title: title.trim(),
+      description: description.trim(),
+      creator,
+      image: mainImageUrl,
+      imageId: mainImageId,
+      blogId: randomId,
+      content,
+      tag: tag.map((t) => t.trim().toLowerCase()), // Normalize tags
+      draft,
+    };
+
+    // Create blog and update user in a more robust way
+    try {
+      const blog = await Blog.create(blogData);
+
+      // push to user blogs after creating
+      await User.findByIdAndUpdate(creator, { $push: { blogs: blog._id } });
+
+      return res.status(201).json({
+        success: true,
+        message: draft ? "Blog saved as draft" : "Blog published successfully",
+        blogId: randomId,
+      });
+    } catch (dbError) {
+      logger.error("Database operation failed:", dbError);
+
+      // Cleanup uploaded images if database operation fails
+      try {
+        await cloudinaryDestroyImage(mainImageId);
+        if (images && images.length > 0) {
+          const imageIds = content.blocks
+            .filter(
+              (block) => block.type === "image" && block.data.file.imageId
+            )
+            .map((block) => block.data.file.imageId);
+
+          await Promise.all(imageIds.map((id) => cloudinaryDestroyImage(id)));
+        }
+      } catch (cleanupError) {
+        logger.error("Error during cleanup:", cleanupError);
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Error saving blog to database",
+        error: dbError.message,
+      });
+    }
   } catch (err) {
-    logger.info("Error creating blogs", err);
+    logger.error("Error creating blogs", err);
     return res.status(500).json({
       success: false,
       message: "Error creating blog",
@@ -275,8 +401,84 @@ async function updateBlog(req, res) {
       });
     }
 
+    // Enhanced validations for update
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter the title",
+      });
+    }
+
+    if (title.trim().length > 200) {
+      return res.status(400).json({
+        success: false,
+        message: "Title should be less than 200 characters",
+      });
+    }
+
+    if (!description || description.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter the description",
+      });
+    }
+
+    if (description.trim().length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Description should be less than 500 characters",
+      });
+    }
+
+    if (!content || !content.blocks || content.blocks.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter the content",
+      });
+    }
+
+    if (content.blocks.length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: "Blog content is too long (maximum 50 blocks allowed)",
+      });
+    }
+
+    if (!tag || tag.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please add at least one tag",
+      });
+    }
+
+    if (tag.length > 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum 10 tags allowed",
+      });
+    }
+
     // multer
     const { image, images } = req.files || {};
+
+    // File size validation
+    if (image && image.length > 0 && image[0].size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: "Cover image size should be less than 5MB",
+      });
+    }
+
+    if (images && images.length > 0) {
+      for (let img of images) {
+        if (img.size > 5 * 1024 * 1024) {
+          return res.status(400).json({
+            success: false,
+            message: "Content images should be less than 5MB each",
+          });
+        }
+      }
+    }
 
     // extract id from params
     const { id } = req.params;
@@ -290,6 +492,29 @@ async function updateBlog(req, res) {
       return res.status(404).json({
         success: false,
         message: "Blog does not exist",
+      });
+    }
+
+    // Authorization check
+    if (blog.creator.toString() !== creator.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this blog",
+      });
+    }
+
+    // Rate limiting for updates - prevent spam updates
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    if (blog.updatedAt && blog.updatedAt > oneHourAgo) {
+      const timeDiff = Math.ceil(
+        (oneHourAgo.getTime() - blog.updatedAt.getTime()) / (1000 * 60)
+      );
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${Math.abs(
+          timeDiff
+        )} minutes before updating again`,
       });
     }
 
@@ -324,7 +549,7 @@ async function updateBlog(req, res) {
       }
     }
 
-    // ✅ Add new images to content blocks
+    // Add new images to content blocks
     if (images && images.length > 0) {
       let imageIndex = 0;
 
@@ -361,7 +586,7 @@ async function updateBlog(req, res) {
       }
     }
 
-    // ✅ Handle main image update
+    // Handle main image update
     if (image && image.length > 0) {
       try {
         // Delete old main image
@@ -386,25 +611,26 @@ async function updateBlog(req, res) {
       }
     }
 
-    // Update blog fields
-    blog.title = title;
-    blog.description = description;
+    // Update blog fields with sanitization
+    blog.title = title.trim();
+    blog.description = description.trim();
     blog.content = content;
-    blog.tag = tag;
+    blog.tag = tag.map((t) => t.trim().toLowerCase()); // Normalize tags
     blog.draft = draft;
 
     // save updated blog in DB
-    await blog.save();
-
-    if (draft) {
-      return res.status(200).json({
-        success: true,
-        message:
-          "Blog saved as draft. You can publish or edit it anytime from your settings.",
+    try {
+      await blog.save();
+    } catch (saveError) {
+      logger.error("Error saving blog:", saveError);
+      return res.status(500).json({
+        success: false,
+        message: "Error saving blog updates",
+        error: saveError.message,
       });
     }
 
-    const updatedUser = await User.findById(creator)
+    const user = await User.findById(creator)
       .select(
         "name email bio blogs followers following username password profilePic isVerified isGoogleAuth likedBlogs savedBlogs showLikedBlogs showSavedBlogs showDraftBlogs isTempPassword tempPasswordExpiry"
       )
@@ -436,8 +662,8 @@ async function updateBlog(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Your blog has been updated",
-      user: updatedUser,
+      message: draft ? "Blog saved as draft" : "Your blog has been updated",
+      user,
     });
   } catch (err) {
     logger.error("Update blog error:", err);

@@ -56,11 +56,19 @@ const EditProfile = () => {
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [isUpdateRemoveButtonDisabled, setIsUpdateRemoveButtonDisabled] =
     useState(false);
+  const [loading, setLoading] = useState(false); // Loading state for overlay
 
   // Debounced username check
   const debounceTimer = useRef(null);
-
   const controllerRef = useRef(null);
+
+  // Loading configuration
+  const getLoadingConfig = () => {
+    return {
+      title: "Updating Profile...",
+      description: "Please wait while we save your profile changes.",
+    };
+  };
 
   const checkUsernameAvailability = useCallback(
     async (usernameToCheck) => {
@@ -211,6 +219,8 @@ const EditProfile = () => {
 
     setIsButtonDisabled(true);
     setIsUpdateRemoveButtonDisabled(true);
+    setLoading(true); // Start loading overlay
+
     const formData = new FormData();
 
     for (let key in userData) {
@@ -249,7 +259,11 @@ const EditProfile = () => {
             token,
           })
         );
-        navigate(`/@${res.data.user.username}`);
+
+        // Delay for smooth UX, then navigate
+        setTimeout(() => {
+          navigate(`/@${res.data.user.username}`);
+        }, 1000);
       }
     } catch (err) {
       if (err.name === "CanceledError") {
@@ -258,6 +272,7 @@ const EditProfile = () => {
         toast.error(err.response?.data?.message || "Error updating user");
       }
     } finally {
+      setLoading(false); // Stop loading overlay
       setIsButtonDisabled(false);
       setIsUpdateRemoveButtonDisabled(false);
     }
@@ -289,206 +304,243 @@ const EditProfile = () => {
     return null;
   };
 
+  const loadingConfig = getLoadingConfig();
+
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 space-y-6">
-      {/* Profile Pic Section */}
-      <div className="flex flex-col items-center space-y-2">
-        <div className="relative w-30 h-30 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
-          <label
-            htmlFor="profilePic"
-            className="flex items-center justify-center w-full h-full cursor-pointer"
-          >
-            {userData.profilePic ? (
-              <img
-                alt="Profile Preview"
-                className="w-full h-full object-cover"
-                src={
-                  typeof userData.profilePic === "string"
-                    ? userData.profilePic
-                    : URL.createObjectURL(userData.profilePic)
+    <>
+      {/* Loading spinner overlay - Same as other components */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {loadingConfig.title}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {loadingConfig.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 space-y-6">
+        {/* Profile Pic Section */}
+        <div className="flex flex-col items-center space-y-2">
+          <div className="relative w-30 h-30 bg-gray-100 border border-gray-300 rounded-full overflow-hidden">
+            <label
+              htmlFor="profilePic"
+              className={`flex items-center justify-center w-full h-full ${loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+            >
+              {userData.profilePic ? (
+                <img
+                  alt="Profile Preview"
+                  className="w-full h-full object-cover"
+                  src={
+                    typeof userData.profilePic === "string"
+                      ? userData.profilePic
+                      : URL.createObjectURL(userData.profilePic)
+                  }
+                />
+              ) : (
+                <span className="text-gray-500 text-xs text-center">
+                  Select image
+                </span>
+              )}
+            </label>
+            <input
+              id="profilePic"
+              accept=".png, .jpg, .jpeg"
+              type="file"
+              name="profilePic"
+              onChange={handleInputChange}
+              className="hidden"
+              ref={fileInputRef}
+              disabled={loading} // Disable during loading
+            />
+          </div>
+
+          <div className="flex space-x-4">
+            <Button
+              disabled={isUpdateRemoveButtonDisabled || loading}
+              className={
+                isUpdateRemoveButtonDisabled || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
+              }
+              onClick={() => !loading && fileInputRef.current.click()}
+              variant="outline"
+              size="sm"
+            >
+              Update
+            </Button>
+            <Button
+              disabled={isUpdateRemoveButtonDisabled || loading}
+              className={
+                isUpdateRemoveButtonDisabled || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "cursor-pointer"
+              }
+              onClick={() => {
+                if (!loading) {
+                  setIsButtonDisabled(false);
+                  setUserData((prev) => ({ ...prev, profilePic: null }));
                 }
-              />
-            ) : (
-              <span className="text-gray-500 text-xs text-center">
-                Select image
-              </span>
-            )}
-          </label>
-          <input
-            id="profilePic"
-            accept=".png, .jpg, .jpeg"
-            type="file"
-            name="profilePic"
-            onChange={handleInputChange}
-            className="hidden"
-            ref={fileInputRef}
-          />
-        </div>
+              }}
+              variant="destructive"
+              size="sm"
+            >
+              Remove
+            </Button>
+          </div>
 
-        <div className="flex space-x-4">
-          <Button
-            disabled={isUpdateRemoveButtonDisabled}
-            className={
-              isUpdateRemoveButtonDisabled
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
-            }
-            onClick={() => fileInputRef.current.click()}
-            variant="outline"
-            size="sm"
-          >
-            Update
-          </Button>
-          <Button
-            disabled={isUpdateRemoveButtonDisabled}
-            className={
-              isUpdateRemoveButtonDisabled
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
-            }
-            onClick={() => {
-              setIsButtonDisabled(false);
-              setUserData((prev) => ({ ...prev, profilePic: null }));
-            }}
-            variant="destructive"
-            size="sm"
-          >
-            Remove
-          </Button>
-        </div>
-
-        <p className="text-xs text-gray-500 text-center">
-          Recommended: Square JPG, PNG, or GIF, at least 1,000px per side.
-        </p>
-      </div>
-
-      {/* Name Input */}
-      <div className="space-y-2">
-        <Label htmlFor="name">Name*</Label>
-        <Input
-          onChange={handleInputChange}
-          value={userData.name}
-          id="name"
-          name="name"
-          placeholder="Your name"
-          className={inputNumChar.name > LIMITS.name ? "border-red-500" : ""}
-        />
-        <div className="flex justify-between items-center">
-          <p
-            className={`text-xs ${inputNumChar.name > LIMITS.name ? "text-red-500" : "text-gray-500"}`}
-          >
-            {inputNumChar.name > LIMITS.name ? "Name is too long!" : ""}
-          </p>
-          <p
-            className={`text-xs text-right ${inputNumChar.name > LIMITS.name ? "text-red-500" : "text-gray-500"}`}
-          >
-            {inputNumChar.name}/{LIMITS.name}
+          <p className="text-xs text-gray-500 text-center">
+            Recommended: Square JPG, PNG, or GIF, at least 1,000px per side.
           </p>
         </div>
-      </div>
 
-      {/* Username Input */}
-      <div className="space-y-2">
-        <Label htmlFor="username">Username*</Label>
-        <div className="relative">
+        {/* Name Input */}
+        <div className="space-y-2">
+          <Label htmlFor="name">Name*</Label>
           <Input
             onChange={handleInputChange}
-            value={userData.username}
-            id="username"
-            name="username"
-            placeholder="Add..."
-            className={getUsernameInputStyling()}
+            value={userData.name}
+            id="name"
+            name="name"
+            placeholder="Your name"
+            className={inputNumChar.name > LIMITS.name ? "border-red-500" : ""}
+            disabled={loading} // Disable during loading
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            {getUsernameStatusIcon()}
+          <div className="flex justify-between items-center">
+            <p
+              className={`text-xs ${inputNumChar.name > LIMITS.name ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.name > LIMITS.name ? "Name is too long!" : ""}
+            </p>
+            <p
+              className={`text-xs text-right ${inputNumChar.name > LIMITS.name ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.name}/{LIMITS.name}
+            </p>
           </div>
         </div>
 
-        {/* Username Status Messages */}
-        {usernameStatus.isChecking && (
-          <p className="text-xs text-yellow-600">Checking availability...</p>
-        )}
+        {/* Username Input */}
+        <div className="space-y-2">
+          <Label htmlFor="username">Username*</Label>
+          <div className="relative">
+            <Input
+              onChange={handleInputChange}
+              value={userData.username}
+              id="username"
+              name="username"
+              placeholder="Add..."
+              className={getUsernameInputStyling()}
+              disabled={loading} // Disable during loading
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              {getUsernameStatusIcon()}
+            </div>
+          </div>
 
-        {usernameStatus.hasChecked && (
-          <p
-            className={`text-xs ${usernameStatus.isAvailable ? "text-green-600" : "text-red-500"}`}
-          >
-            {usernameStatus.message}
-          </p>
-        )}
+          {/* Username Status Messages */}
+          {usernameStatus.isChecking && (
+            <p className="text-xs text-yellow-600">Checking availability...</p>
+          )}
 
-        <div className="flex justify-between items-center">
-          <p
-            className={`text-xs ${inputNumChar.username > LIMITS.username ? "text-red-500" : "text-gray-500"}`}
+          {usernameStatus.hasChecked && (
+            <p
+              className={`text-xs ${usernameStatus.isAvailable ? "text-green-600" : "text-red-500"}`}
+            >
+              {usernameStatus.message}
+            </p>
+          )}
+
+          <div className="flex justify-between items-center">
+            <p
+              className={`text-xs ${inputNumChar.username > LIMITS.username ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.username > LIMITS.username
+                ? "Username is too long!"
+                : ""}
+            </p>
+            <p
+              className={`text-xs text-right ${inputNumChar.username > LIMITS.username ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.username}/{LIMITS.username}
+            </p>
+          </div>
+        </div>
+
+        {/* Bio Input */}
+        <div className="space-y-2">
+          <Label htmlFor="bio">Short bio</Label>
+          <Textarea
+            onChange={handleInputChange}
+            value={userData.bio}
+            id="bio"
+            name="bio"
+            placeholder="Write a short bio..."
+            rows={3}
+            className={inputNumChar.bio > LIMITS.bio ? "border-red-500" : ""}
+            disabled={loading} // Disable during loading
+          />
+          <div className="flex justify-between items-center">
+            <p
+              className={`text-xs ${inputNumChar.bio > LIMITS.bio ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.bio > LIMITS.bio ? "Bio is too long!" : ""}
+            </p>
+            <p
+              className={`text-xs text-right ${inputNumChar.bio > LIMITS.bio ? "text-red-500" : "text-gray-500"}`}
+            >
+              {inputNumChar.bio}/{LIMITS.bio}
+            </p>
+          </div>
+        </div>
+
+        {/* Info Text */}
+        <div className="border-t pt-4 text-sm text-gray-600">
+          Go beyond the short bio—add photos and details to make your profile
+          truly yours.
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end space-x-2">
+          <Button
+            className="cursor-pointer"
+            onClick={handleCancel}
+            variant="outline"
+            disabled={loading} // Disable during loading
           >
-            {inputNumChar.username > LIMITS.username
-              ? "Username is too long!"
-              : ""}
-          </p>
-          <p
-            className={`text-xs text-right ${inputNumChar.username > LIMITS.username ? "text-red-500" : "text-gray-500"}`}
+            Cancel
+          </Button>
+          <Button
+            disabled={
+              isButtonDisabled ||
+              hasExceededLimit() ||
+              isUsernameInvalid() ||
+              loading
+            }
+            onClick={handleUpdateProfile}
+            className={
+              isButtonDisabled ||
+              hasExceededLimit() ||
+              isUsernameInvalid() ||
+              loading
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer"
+            }
           >
-            {inputNumChar.username}/{LIMITS.username}
-          </p>
+            {loading && (
+              <span className="loader border-2 border-t-transparent border-white rounded-full w-4 h-4 animate-spin mr-2"></span>
+            )}
+            {loading ? "Please wait..." : "Save"}
+          </Button>
         </div>
       </div>
-
-      {/* Bio Input */}
-      <div className="space-y-2">
-        <Label htmlFor="bio">Short bio</Label>
-        <Textarea
-          onChange={handleInputChange}
-          value={userData.bio}
-          id="bio"
-          name="bio"
-          placeholder="Write a short bio..."
-          rows={3}
-          className={inputNumChar.bio > LIMITS.bio ? "border-red-500" : ""}
-        />
-        <div className="flex justify-between items-center">
-          <p
-            className={`text-xs ${inputNumChar.bio > LIMITS.bio ? "text-red-500" : "text-gray-500"}`}
-          >
-            {inputNumChar.bio > LIMITS.bio ? "Bio is too long!" : ""}
-          </p>
-          <p
-            className={`text-xs text-right ${inputNumChar.bio > LIMITS.bio ? "text-red-500" : "text-gray-500"}`}
-          >
-            {inputNumChar.bio}/{LIMITS.bio}
-          </p>
-        </div>
-      </div>
-
-      {/* Info Text */}
-      <div className="border-t pt-4 text-sm text-gray-600">
-        Go beyond the short bio—add photos and details to make your profile
-        truly yours.
-      </div>
-
-      {/* Buttons */}
-      <div className="flex justify-end space-x-2">
-        <Button
-          className="cursor-pointer"
-          onClick={handleCancel}
-          variant="outline"
-        >
-          Cancel
-        </Button>
-        <Button
-          disabled={
-            isButtonDisabled || hasExceededLimit() || isUsernameInvalid()
-          }
-          onClick={handleUpdateProfile}
-          className={
-            isButtonDisabled || hasExceededLimit() || isUsernameInvalid()
-              ? "opacity-50 cursor-not-allowed"
-              : "cursor-pointer"
-          }
-        >
-          Save
-        </Button>
-      </div>
-    </div>
+    </>
   );
 };
 

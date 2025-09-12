@@ -33,10 +33,25 @@ const AddBlog = () => {
   );
 
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
-
   const controllerRef = useRef(null);
+
+  // Loading configuration based on operation type
+  const getLoadingConfig = () => {
+    if (id) {
+      return {
+        title: "Updating Blog...",
+        description: "Please wait while we update your blog post.",
+      };
+    } else {
+      return {
+        title: blogData.draft ? "Saving as Draft..." : "Publishing Blog...",
+        description: blogData.draft
+          ? "Please wait while we save your blog as draft."
+          : "Please wait while we publish your blog post.",
+      };
+    }
+  };
 
   const handleBlogData = (e) => {
     if (blogData.title) {
@@ -176,16 +191,19 @@ const AddBlog = () => {
       );
 
       // redirect to home page
-      if (res.status == 200) {
+      if (res.status == 201) {
         toast.success(res.data.message);
-        // navigate -> home page
-        navigate("/");
+
+        // Delay for smooth UX, then navigate
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       }
     } catch (err) {
       if (err.name === "CanceledError") {
-        toast.error("Update request cancelled");
+        toast.error("Upload request cancelled");
       } else {
-        toast.error(err.response?.data?.message || "Error updating user");
+        toast.error(err.response?.data?.message || "Error creating blog");
       }
     } finally {
       // loader stop
@@ -200,8 +218,10 @@ const AddBlog = () => {
 
     e.preventDefault();
 
-    let formData = new FormData();
+    // loader start
+    setLoading(true);
 
+    let formData = new FormData();
     for (let [key, value] of Object.entries(blogData)) {
       if (key === "image") {
         formData.append(key, value);
@@ -252,16 +272,19 @@ const AddBlog = () => {
       //  redirect to home page
       if (res.status == 200) {
         toast.success(res.data.message);
-        // navigate -> home page
-        navigate("/", { replace: true });
         // update user
         dispatch(updateUser(res.data.user));
+
+        // Delay for smooth UX, then navigate
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       }
     } catch (err) {
       if (err.name === "CanceledError") {
         toast.error("Update request cancelled");
       } else {
-        toast.error(err.response?.data?.message || "Error updating user");
+        toast.error(err.response?.data?.message || "Error updating blog");
       }
     } finally {
       // loader stop
@@ -350,162 +373,189 @@ const AddBlog = () => {
     });
   };
 
+  const loadingConfig = getLoadingConfig();
+
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-5xl sm:text-5xl font-light text-gray-800 mb-6 text-center leading-tight tracking-tight">
-        {id ? "Refine Your Words" : "Craft Your Story"}
-      </h1>
-
-      <form
-        className="space-y-10"
-        onSubmit={id ? handleEditBlog : handlePostBlog}
-      >
-        {/* Title */}
-        <div>
-          <input
-            id="title"
-            type="text"
-            name="title"
-            value={blogData.title}
-            onChange={handleBlogData}
-            className="w-full text-4xl my-3 py-1 bg-transparent focus:outline-none placeholder-gray-400 placeholder:text-4xl font-light"
-            placeholder="Blog Title"
-          />
+    <>
+      {/* Loading spinner overlay - Same as DeleteConfirmation */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full mx-4">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {loadingConfig.title}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {loadingConfig.description}
+              </p>
+            </div>
+          </div>
         </div>
-        {/* Description */}
-        <div>
-          <textarea
-            id="description"
-            name="description"
-            value={blogData.description}
-            onChange={handleBlogData}
-            className="w-full text-lg bg-transparent focus:outline-none placeholder-gray-400"
-            rows="3"
-            placeholder="Write a short description..."
-          />
-        </div>
-        {/* Cover Image Upload */}
-        <div>
-          <div className="relative bg-gray-100 border border-gray-300 rounded-md overflow-hidden">
-            <label
-              htmlFor="image"
-              className="text-lg font-light text-gray-700 cursor-pointer block"
-            >
-              {blogData.image ? (
-                <img
-                  alt="Cover Preview"
-                  className="max-w-full h-auto mx-auto"
-                  src={
-                    typeof blogData.image === "string"
-                      ? blogData.image
-                      : URL.createObjectURL(blogData.image)
-                  }
-                />
-              ) : (
-                <div className="flex font-light items-center justify-center h-48 text-gray-500 border border-dashed rounded-md">
-                  Click to upload cover image
-                </div>
-              )}
-            </label>
+      )}
 
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-5xl sm:text-5xl font-light text-gray-800 mb-6 text-center leading-tight tracking-tight">
+          {id ? "Refine Your Words" : "Craft Your Story"}
+        </h1>
+
+        <form
+          className="space-y-10"
+          onSubmit={id ? handleEditBlog : handlePostBlog}
+        >
+          {/* Title */}
+          <div>
             <input
-              id="image"
-              accept=".png, .jpg, .jpeg"
-              type="file"
-              name="image"
-              placeholder="Select Image"
+              id="title"
+              type="text"
+              name="title"
+              value={blogData.title}
               onChange={handleBlogData}
-              className="hidden"
+              className="w-full text-4xl my-3 py-1 bg-transparent focus:outline-none placeholder-gray-400 placeholder:text-4xl font-light"
+              placeholder="Blog Title"
+              disabled={loading} // Disable during loading
             />
           </div>
-        </div>
-        {/* Tag */}
-        <div className="space-y-1">
-          {/* Tag Input */}
-          <input
-            type="text"
-            name="tag"
-            className="w-full border border-gray-300 focus:outline-none focus:ring-black/60 rounded-lg px-4 py-3 text-sm sm:text-base placeholder-gray-400"
-            onKeyDown={handleTagKeyDown}
-            placeholder="Add a tag and press Enter"
-          />
-
-          {/* Tag Display */}
-          <div className="flex flex-wrap gap-2">
-            {blogData?.tag?.map((tag, index) => (
-              <div key={index}>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-light rounded-md hover:bg-black hover:opacity-70 hover:text-white">
-                  <span className="leading-none">{tag}</span>
-                  <i
-                    onClick={() => handleTagRemove(index)}
-                    className="fi fi-sr-cross-circle text-sm cursor-pointer leading-none flex items-center"
-                  ></i>
-                </div>
-              </div>
-            ))}
+          {/* Description */}
+          <div>
+            <textarea
+              id="description"
+              name="description"
+              value={blogData.description}
+              onChange={handleBlogData}
+              className="w-full text-lg bg-transparent focus:outline-none placeholder-gray-400"
+              rows="3"
+              placeholder="Write a short description..."
+              disabled={loading} // Disable during loading
+            />
           </div>
+          {/* Cover Image Upload */}
+          <div>
+            <div className="relative bg-gray-100 border border-gray-300 rounded-md overflow-hidden">
+              <label
+                htmlFor="image"
+                className={`text-lg font-light text-gray-700 block ${loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+              >
+                {blogData.image ? (
+                  <img
+                    alt="Cover Preview"
+                    className="max-w-full h-auto mx-auto"
+                    src={
+                      typeof blogData.image === "string"
+                        ? blogData.image
+                        : URL.createObjectURL(blogData.image)
+                    }
+                  />
+                ) : (
+                  <div className="flex font-light items-center justify-center h-48 text-gray-500 border border-dashed rounded-md">
+                    Click to upload cover image
+                  </div>
+                )}
+              </label>
 
-          {/* Just below tags — small and stuck to them */}
-          <p className="text-gray-400 text-[10px] leading-none m-0 p-0">
-            **you can add up to {10 - blogData.tag.length} more tag(s)
-          </p>
-        </div>
-        {/* Draft Selector */}
-        <div className="pt-2">
-          <label className="block text-sm font-light text-gray-700 mb-1">
-            Save as draft?
-          </label>
-          <select
-            name="draft"
-            value={blogData.draft}
-            onChange={handleBlogData}
-            className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-black/60 text-sm"
-          >
-            <option value={false}>No (Publish)</option>
-            <option value={true}>Yes (Save as Draft)</option>
-          </select>
-        </div>
-        {/* EditorJS Content */}
-        <div>
-          <div
-            id="editorjs"
-            className="bg-white border border-gray-200 rounded-md px-4 py-6 min-h-[300px]"
-          />
-        </div>
-        {/* Submit Button */}
-        <div className="pt-4 flex flex-col sm:flex-row sm:justify-end items-center gap-2">
-          {/* Cancel Button */}
-          <Button
-            onClick={handleCancel}
-            variant="outline"
-            className="w-full sm:w-40 border-red-600 text-red-600 hover:bg-red-50 cursor-pointer"
-          >
-            Cancel
-          </Button>
+              <input
+                id="image"
+                accept=".png, .jpg, .jpeg"
+                type="file"
+                name="image"
+                placeholder="Select Image"
+                onChange={handleBlogData}
+                className="hidden"
+                disabled={loading} // Disable during loading
+              />
+            </div>
+          </div>
+          {/* Tag */}
+          <div className="space-y-1">
+            {/* Tag Input */}
+            <input
+              type="text"
+              name="tag"
+              className="w-full border border-gray-300 focus:outline-none focus:ring-black/60 rounded-lg px-4 py-3 text-sm sm:text-base placeholder-gray-400"
+              onKeyDown={handleTagKeyDown}
+              placeholder="Add a tag and press Enter"
+              disabled={loading} // Disable during loading
+            />
 
+            {/* Tag Display */}
+            <div className="flex flex-wrap gap-2">
+              {blogData?.tag?.map((tag, index) => (
+                <div key={index}>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-800 text-xs font-light rounded-md hover:bg-black hover:opacity-70 hover:text-white">
+                    <span className="leading-none">{tag}</span>
+                    <i
+                      onClick={() => !loading && handleTagRemove(index)} // Disable during loading
+                      className={`fi fi-sr-cross-circle text-sm leading-none flex items-center ${loading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                    ></i>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Just below tags — small and stuck to them */}
+            <p className="text-gray-400 text-[10px] leading-none m-0 p-0">
+              **you can add up to {10 - blogData.tag.length} more tag(s)
+            </p>
+          </div>
+          {/* Draft Selector */}
+          <div className="pt-2">
+            <label className="block text-sm font-light text-gray-700 mb-1">
+              Save as draft?
+            </label>
+            <select
+              name="draft"
+              value={blogData.draft}
+              onChange={handleBlogData}
+              className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-black/60 text-sm"
+              disabled={loading} // Disable during loading
+            >
+              <option value={false}>No (Publish)</option>
+              <option value={true}>Yes (Save as Draft)</option>
+            </select>
+          </div>
+          {/* EditorJS Content */}
+          <div className={loading ? "pointer-events-none opacity-50" : ""}>
+            <div
+              id="editorjs"
+              className="bg-white border border-gray-200 rounded-md px-4 py-6 min-h-[300px]"
+            />
+          </div>
           {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isButtonDisabled || loading}
-            className={`
-      w-full sm:w-40 cursor-pointer
-      ${isButtonDisabled || loading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}
-    `}
-          >
-            {loading && (
-              <span className="loader border-2 border-t-transparent border-white rounded-full w-4 h-4 animate-spin mr-2"></span>
-            )}
-            {loading
-              ? "Please wait..."
-              : blogData.draft
-                ? "Save as Draft"
-                : id
-                  ? "Update Blog"
-                  : "Publish Blog"}
-          </Button>
-        </div>
-      </form>
-    </div>
+          <div className="pt-4 flex flex-col sm:flex-row sm:justify-end items-center gap-2">
+            {/* Cancel Button */}
+            <Button
+              onClick={handleCancel}
+              variant="outline"
+              className="w-full sm:w-40 border-red-600 text-red-600 hover:bg-red-50 cursor-pointer"
+              disabled={loading} // Disable during loading
+            >
+              Cancel
+            </Button>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={isButtonDisabled || loading}
+              className={`
+        w-full sm:w-40 cursor-pointer
+        ${isButtonDisabled || loading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}
+      `}
+            >
+              {loading && (
+                <span className="loader border-2 border-t-transparent border-white rounded-full w-4 h-4 animate-spin mr-2"></span>
+              )}
+              {loading
+                ? "Please wait..."
+                : blogData.draft
+                  ? "Save as Draft"
+                  : id
+                    ? "Update Blog"
+                    : "Publish Blog"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 };
 

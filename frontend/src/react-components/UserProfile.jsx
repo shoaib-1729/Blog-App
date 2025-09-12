@@ -22,14 +22,7 @@ const UserProfile = () => {
   const [showDeleteDropdown, setShowDeleteDropdown] = useState(false);
   const navigate = useNavigate();
 
-  const {
-    token,
-    followers,
-    id: userId,
-    savedBlogs,
-    likedBlogs,
-    bio,
-  } = useSelector((state) => state.user);
+  const { token, id: userId } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const dropdownRef = useRef(null);
@@ -67,9 +60,6 @@ const UserProfile = () => {
           `${import.meta.env.VITE_BACKEND_URL}/users/${newName}`
         );
         setUserData(res.data.user);
-        // console.log(userData._id === userId);
-        // console.log(userData._id);
-        // console.log(userId);
       } catch (err) {
         const errorMessage =
           err?.response?.data?.message ||
@@ -180,7 +170,7 @@ const UserProfile = () => {
                 {userData?.name}
               </h1>
               <p className="text-base text-gray-600 font-medium">
-                {followers?.length} followers
+                {userData?.followers?.length} followers
               </p>
             </div>
 
@@ -490,18 +480,16 @@ const UserProfile = () => {
               )}
 
               {/* about tab */}
-              {bio && (
-                <NavLink
-                  to="about"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
-                      : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
-                  }
-                >
-                  About
-                </NavLink>
-              )}
+              <NavLink
+                to="about"
+                className={({ isActive }) =>
+                  isActive
+                    ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
+                    : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
+                }
+              >
+                About
+              </NavLink>
             </div>
           </div>
 

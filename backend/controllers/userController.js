@@ -984,32 +984,47 @@ async function userSettings(req, res) {
       });
     }
 
-    // update user settings
-    user.showLikedBlogs = showLiked;
-    user.showDraftBlogs = showDraft;
-    user.showSavedBlogs = showSaved;
+    // check if user has draft blogs
+    const draftBlogs = await Blog.find({
+      creator: user._id,
+      draft: true,
+    });
 
-    // Important Logic: Agar showDraft true hai toh saare draft blogs ko publish kardo
-    if (showDraft === true) {
-      // Find all blogs of this user where draft = true
-      const draftBlogs = await Blog.find({
-        creator: user._id,
-        draft: true,
+    if (showDraft === true && draftBlogs.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "You don't have any blog set as draft.",
       });
+    }
 
-      // Update all draft blogs to published (draft = false)
-      if (draftBlogs.length > 0) {
+    // agar user ke ek bhi draft blog hai
+    if (draftBlogs.length > 0) {
+      // agar showDraft true hai toh saare draft blogs ko publish kardo
+      if (showDraft === true) {
+        // Find all blogs of this user where draft = true
         await Blog.updateMany(
           { creator: user._id, draft: true },
           { $set: { draft: false } }
         );
+
+        // ab showDraft ko false kardo kyuki saare draft publish ho gaye
+        user.showDraftBlogs = false;
+      }
+      // agar showDraft false ya undefined hai
+      else {
+        user.showDraftBlogs = showDraft;
       }
     }
 
+    user.showLikedBlogs = showLiked;
+    user.showSavedBlogs = showSaved;
     await user.save();
 
     // find updated user with fresh blog data
     const updatedUser = await User.findOne({ username })
+      .select(
+        "name email bio blogs followers following username password profilePic isVerified isGoogleAuth likedBlogs savedBlogs showLikedBlogs showSavedBlogs showDraftBlogs isTempPassword tempPasswordExpiry"
+      )
       .populate({
         path: "blogs",
         populate: {

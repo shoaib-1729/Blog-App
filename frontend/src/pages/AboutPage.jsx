@@ -18,7 +18,12 @@ const AboutPage = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-gray-400 text-sm">No bio added yet</p>
+            <p className="text-gray-400 text-sm text-center">
+              You haven’t added a bio yet. <br />
+              <span className="text-gray-500">
+                Update your profile to share a little about yourself.
+              </span>
+            </p>
           </div>
         )}
       </div>
