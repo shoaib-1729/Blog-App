@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="https://blog-app-1729.vercel.app/assets/logo-aNB-VLew.svg" alt="BloomVerse Logo" width="500" style="vertical-align: middle;">
+  <img src="https://vicharlekhan.vercel.app/assets/logo-aNB-VLew.svg" alt="BloomVerse Logo" width="500" style="vertical-align: middle;">
 <span>
   <h1 style="font-size: 100px; vertical-align: middle;">BloomVerse</span> – A Comprehensive Blogging Platform</h1>
 </span>
