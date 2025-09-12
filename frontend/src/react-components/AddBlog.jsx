@@ -23,7 +23,7 @@ const AddBlog = () => {
     tag: [],
   });
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-   const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { id } = useParams();
   const editorjsRef = useRef(null);
@@ -133,6 +133,66 @@ const AddBlog = () => {
     }
   }
 
+  // form submit pr db call karwao -> create blog
+  async function handlePostBlog(e) {
+    e.preventDefault();
+    // disable button
+    setIsButtonDisabled(true);
+
+    // loader start
+    setLoading(true);
+
+    let formData = new FormData();
+
+    for (let [key, value] of Object.entries(blogData)) {
+      if (key === "image") {
+        formData.append(key, value);
+      } else if (key === "content" || key === "tag" || key === "draft") {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value); // Strings like title & description
+      }
+    }
+
+    blogData.content.blocks.forEach((block) => {
+      if (block.type === "image") {
+        formData.append("images", block.data.file.image);
+      }
+    });
+
+    try {
+      controllerRef.current = new AbortController();
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/blogs`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controllerRef.current.signal,
+        }
+      );
+
+      // redirect to home page
+      if (res.status == 200) {
+        toast.success(res.data.message);
+        // navigate -> home page
+        navigate("/");
+      }
+    } catch (err) {
+      if (err.name === "CanceledError") {
+        toast.error("Update request cancelled");
+      } else {
+        toast.error(err.response?.data?.message || "Error updating user");
+      }
+    } finally {
+      // loader stop
+      setLoading(false);
+    }
+  }
+
   // handle edit blog
   async function handleEditBlog(e) {
     // enable button
@@ -142,13 +202,14 @@ const AddBlog = () => {
 
     let formData = new FormData();
 
-    for (let data of Object.entries(blogData)) {
-      const [key, value] = data;
-      if (key == "image") {
+    for (let [key, value] of Object.entries(blogData)) {
+      if (key === "image") {
         formData.append(key, value);
+      } else if (key === "content" || key === "tag" || key === "draft") {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value); // Strings like title & description
       }
-
-      formData.append(key, JSON.stringify(value));
     }
 
     // case-1 (if se handle hoga)
@@ -202,9 +263,9 @@ const AddBlog = () => {
       } else {
         toast.error(err.response?.data?.message || "Error updating user");
       }
-    }finally {
+    } finally {
       // loader stop
-      setLoading(false); 
+      setLoading(false);
     }
   }
 
@@ -225,64 +286,6 @@ const AddBlog = () => {
     }
     navigate(-1);
   };
-
-  // form submit pr db call karwao -> create blog
-  async function handlePostBlog(e) {
-    e.preventDefault();
-    // disable button
-    setIsButtonDisabled(true);
-
-    // loader start
-     setLoading(true);
-
-    let formData = new FormData();
-    for (let data of Object.entries(blogData)) {
-      const [key, value] = data;
-      if (key == "image") {
-        formData.append(key, value);
-      }
-
-      formData.append(key, JSON.stringify(value));
-    }
-
-    blogData.content.blocks.forEach((block) => {
-      if (block.type === "image") {
-        formData.append("images", block.data.file.image);
-      }
-    });
-
-    try {
-      controllerRef.current = new AbortController();
-
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-          signal: controllerRef.current.signal,
-        }
-      );
-
-      // redirect to home page
-      if (res.status == 200) {
-        toast.success(res.data.message);
-        // navigate -> home page
-        navigate("/");
-      }
-    } catch (err) {
-      if (err.name === "CanceledError") {
-        toast.error("Update request cancelled");
-      } else {
-        toast.error(err.response?.data?.message || "Error updating user");
-      }
-    }finally {
-      // loader stop
-      setLoading(false); 
-    }
-  }
 
   const initializeEditorjs = () => {
     editorjsRef.current = new EditorJS({
@@ -495,10 +498,10 @@ const AddBlog = () => {
             {loading
               ? "Please wait..."
               : blogData.draft
-              ? "Save as Draft"
-              : id
-              ? "Update Blog"
-              : "Publish Blog"}
+                ? "Save as Draft"
+                : id
+                  ? "Update Blog"
+                  : "Publish Blog"}
           </Button>
         </div>
       </form>

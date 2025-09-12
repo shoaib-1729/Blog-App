@@ -40,7 +40,7 @@ async function getUserById(req, res) {
 
     const user = await User.findOne({ username })
       .select(
-        "name email bio blogs followers following username password profilePic likedBlogs savedBlogs showLikedBlogs showSavedBlogs showDraftBlogs "
+        "name email bio blogs followers following username password profilePic isVerified isGoogleAuth likedBlogs savedBlogs showLikedBlogs showSavedBlogs showDraftBlogs isTempPassword tempPasswordExpiry"
       )
       .populate({
         path: "blogs",
@@ -67,6 +67,7 @@ async function getUserById(req, res) {
         path: "followers following",
         select: "name username email profilePic",
       });
+
     // get the users
     return res.json({
       success: true,
@@ -442,7 +443,7 @@ async function googleAuth(req, res) {
     // user exists karta hai
     const user = await User.findOne({ email: userEmail })
       .select(
-        "name profilePic bio email username followers following password isVerified isGoogleAuth blogs savedBlogs likedBlogs"
+        "name email bio blogs followers following username password profilePic isVerified isGoogleAuth likedBlogs savedBlogs showLikedBlogs showSavedBlogs showDraftBlogs isTempPassword tempPasswordExpiry"
       )
       .populate({
         path: "blogs",
@@ -494,6 +495,9 @@ async function googleAuth(req, res) {
             blogs: user.blogs,
             likedBlogs: user.likedBlogs,
             savedBlogs: user.savedBlogs,
+            showLikedBlogs: user.showLikedBlogs,
+            showDraftBlogs: user.showDraftBlogs,
+            showSavedBlogs: user.showSavedBlogs,
             token,
           },
         });
@@ -539,6 +543,9 @@ async function googleAuth(req, res) {
         blogs: newUser.blogs,
         likedBlogs: newUser.likedBlogs,
         savedBlogs: newUser.savedBlogs,
+        showLikedBlogs: newUser.showLikedBlogs,
+        showDraftBlogs: newUser.showDraftBlogs,
+        showSavedBlogs: newUser.showSavedBlogs,
         token,
       },
     });

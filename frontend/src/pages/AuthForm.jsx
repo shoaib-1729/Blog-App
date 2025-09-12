@@ -48,8 +48,6 @@ const AuthForm = ({ type }) => {
       );
     } else if (type === "signin") {
       setIsButtonDisabled(!(userData.email && userData.password));
-    } else if (type === "forgot") {
-      setIsButtonDisabled(!userData.email);
     }
   }, [userData, type]);
 
@@ -99,8 +97,6 @@ const AuthForm = ({ type }) => {
         dispatch(login(res?.data?.user));
         navigate("/");
       } else if (type === "signup") {
-        navigate("/signin");
-      } else if (type === "forgot") {
         navigate("/signin");
       }
     } catch (err) {

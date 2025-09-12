@@ -67,6 +67,9 @@ const UserProfile = () => {
           `${import.meta.env.VITE_BACKEND_URL}/users/${newName}`
         );
         setUserData(res.data.user);
+        // console.log(userData._id === userId);
+        // console.log(userData._id);
+        // console.log(userId);
       } catch (err) {
         const errorMessage =
           err?.response?.data?.message ||
@@ -87,7 +90,6 @@ const UserProfile = () => {
     // 2. Redirect if trying to access someone else's draft blogs
     if (
       (userData?._id !== userId &&
-        !userData?.showDraftBlogs &&
         location.pathname === `/${username}/draft-blogs`) ||
       (userData?._id !== userId &&
         !userData?.showLikedBlogs &&
@@ -243,37 +245,35 @@ const UserProfile = () => {
                 Stories
               </NavLink>
 
-              {/* saved blog tab */}
-              {savedBlogs?.length > 0 &&
-                (userData._id === userId || userData?.showSavedBlogs) && (
-                  <NavLink
-                    to={`/${username}/saved-blogs`}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "pb-3 text-sm font-medium border-b-2 border-black text-black"
-                        : "pb-3 text-sm text-gray-500 hover:text-black transition"
-                    }
-                  >
-                    Saved Blogs
-                  </NavLink>
-                )}
+              {/* Saved Blogs Tab */}
+              {(userData._id === userId || userData?.showSavedBlogs) && (
+                <NavLink
+                  to={`/${username}/saved-blogs`}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "pb-3 text-sm font-medium border-b-2 border-black text-black"
+                      : "pb-3 text-sm text-gray-500 hover:text-black transition"
+                  }
+                >
+                  Saved Blogs
+                </NavLink>
+              )}
 
-              {/* liked blog tab */}
-              {likedBlogs?.length > 0 &&
-                (userData._id === userId || userData?.showLikedBlogs) && (
-                  <NavLink
-                    to={`/${username}/liked-blogs`}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "pb-3 text-sm font-medium border-b-2 border-black text-black"
-                        : "pb-3 text-sm text-gray-500 hover:text-black transition"
-                    }
-                  >
-                    Liked Blogs
-                  </NavLink>
-                )}
+              {/* Liked Blogs Tab */}
+              {(userData._id === userId || userData?.showLikedBlogs) && (
+                <NavLink
+                  to={`/${username}/liked-blogs`}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "pb-3 text-sm font-medium border-b-2 border-black text-black"
+                      : "pb-3 text-sm text-gray-500 hover:text-black transition"
+                  }
+                >
+                  Liked Blogs
+                </NavLink>
+              )}
 
-              {/* draft blog tab */}
+              {/* Draft Blogs Tab */}
               {userData._id === userId && (
                 <NavLink
                   to={`/${username}/draft-blogs`}
@@ -448,37 +448,35 @@ const UserProfile = () => {
               </NavLink>
 
               {/* saved blog tab */}
-              {savedBlogs?.length > 0 &&
-                (userData._id === userId || userData?.showSavedBlogs) && (
-                  <NavLink
-                    to={`/${username}/saved-blogs`}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
-                        : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
-                    }
-                  >
-                    Saved
-                  </NavLink>
-                )}
+              {(userData._id === userId || userData?.showSavedBlogs) && (
+                <NavLink
+                  to={`/${username}/saved-blogs`}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
+                      : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
+                  }
+                >
+                  Saved
+                </NavLink>
+              )}
 
               {/* liked blog tab */}
-              {likedBlogs?.length > 0 &&
-                (userData._id === userId || userData?.showLikedBlogs) && (
-                  <NavLink
-                    to={`/${username}/liked-blogs`}
-                    className={({ isActive }) =>
-                      isActive
-                        ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
-                        : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
-                    }
-                  >
-                    Liked
-                  </NavLink>
-                )}
+              {(userData._id === userId || userData?.showLikedBlogs) && (
+                <NavLink
+                  to={`/${username}/liked-blogs`}
+                  className={({ isActive }) =>
+                    isActive
+                      ? "pb-2 px-1 text-base font-semibold border-b-2 border-black text-black whitespace-nowrap"
+                      : "pb-2 px-1 text-base text-gray-500 hover:text-black whitespace-nowrap transition"
+                  }
+                >
+                  Liked
+                </NavLink>
+              )}
 
               {/* draft blog tab */}
-              {(userData._id === userId || userData?.showDraftBlogs) && (
+              {userData._id === userId && (
                 <NavLink
                   to={`/${username}/draft-blogs`}
                   className={({ isActive }) =>

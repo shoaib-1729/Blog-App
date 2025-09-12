@@ -1,15 +1,8 @@
 import React from "react";
 import { useUser } from "../context/UserContext";
 
-// import { useSelector } from "react-redux";
-
 const AboutPage = () => {
   const userData = useUser();
-
-  console.log(userData);
-  //   const { bio, blogs, following, followers } = useSelector(
-  //     (state) => state.user
-  //   );
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

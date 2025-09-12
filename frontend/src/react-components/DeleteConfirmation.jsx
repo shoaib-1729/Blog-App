@@ -53,7 +53,6 @@ const DeleteConfirmation = ({ type, item, setShowDeleteDropdown }) => {
       tooltipText: "Delete Blog",
       icon: "fi fi-rs-trash",
       canDelete: item?.creator?._id === userId,
-      // navigateAfter: "/",
       trigger: (
         <div className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full cursor-pointer">
           <i className="fi fi-rs-trash mr-3"></i>
@@ -80,7 +79,6 @@ const DeleteConfirmation = ({ type, item, setShowDeleteDropdown }) => {
       tooltipText: "Delete Account",
       icon: "fi fi-rs-trash",
       canDelete: item?._id === userId,
-      // navigateAfter: "/login",
       trigger: (
         <div className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full cursor-pointer">
           <i className="fi fi-rs-trash mr-3"></i>
