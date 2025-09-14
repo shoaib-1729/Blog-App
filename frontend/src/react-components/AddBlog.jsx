@@ -118,33 +118,62 @@ const AddBlog = () => {
   }, []);
 
   function handleTagKeyDown(e) {
-    if (e.code === "Space") {
+    if (e.code === "Space" || e.code === "Comma") {
       e.preventDefault();
       return;
     }
 
-    if (e.code === "Enter") {
+    // Multiple ways to detect Enter for mobile compatibility
+    if (
+      e.code === "Enter" ||
+      e.key === "Enter" ||
+      e.keyCode === 13 ||
+      e.which === 13
+    ) {
       e.preventDefault();
-      // enable button
-      setIsButtonDisabled(false);
+      addTag(e.target.value, e.target);
+      return;
+    }
+  }
 
-      const newTag = e.target.value;
+  // Add blur event for mobile devices (when user taps outside)
+  function handleTagBlur(e) {
+    const value = e.target.value.trim();
+    if (value) {
+      addTag(value, e.target);
+    }
+  }
 
-      if (blogData.tag.length == 10) {
-        return toast.error("You've reached the maximum of 10 tags.");
-      }
-      if (blogData.tag.includes(newTag)) {
-        return toast.error("This tag is already added. Try a different one.");
-      }
-      setBlogData((prev) => {
-        const updatedTag = [...prev.tag, newTag];
-        // True value
-        return {
-          ...prev,
-          tag: updatedTag,
-        };
-      });
-      e.target.value = "";
+  // Separate function to add tag (DRY principle)
+  function addTag(tagValue, inputElement) {
+    const newTag = tagValue.trim();
+
+    if (!newTag) return;
+
+    // Enable button
+    setIsButtonDisabled(false);
+
+    if (blogData.tag.length >= 10) {
+      return toast.error("You've reached the maximum of 10 tags.");
+    }
+
+    if (blogData.tag.includes(newTag)) {
+      return toast.error("This tag is already added. Try a different one.");
+    }
+
+    setBlogData((prev) => ({
+      ...prev,
+      tag: [...prev.tag, newTag],
+    }));
+
+    inputElement.value = "";
+  }
+
+  // Add click handler for manual tag addition (mobile fallback button)
+  function handleAddTagClick() {
+    const tagInput = document.querySelector('input[name="tag"]');
+    if (tagInput && tagInput.value.trim()) {
+      addTag(tagInput.value, tagInput);
     }
   }
 
@@ -467,15 +496,37 @@ const AddBlog = () => {
           </div>
           {/* Tag */}
           <div className="space-y-1">
-            {/* Tag Input */}
-            <input
-              type="text"
-              name="tag"
-              className="w-full border border-gray-300 focus:outline-none focus:ring-black/60 rounded-lg px-4 py-3 text-sm sm:text-base placeholder-gray-400"
-              onKeyDown={handleTagKeyDown}
-              placeholder="Add a tag and press Enter"
-              disabled={loading} // Disable during loading
-            />
+            {/* Tag Input with Add Button for Mobile */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="tag"
+                inputMode="text"
+                enterKeyHint="done"
+                className="flex-1 border border-gray-300 focus:outline-none focus:ring-black/60 rounded-lg px-4 py-3 text-sm sm:text-base placeholder-gray-400"
+                onKeyDown={handleTagKeyDown}
+                onBlur={handleTagBlur}
+                placeholder="Add a tag and press Enter"
+                disabled={loading} // Disable during loading
+              />
+
+              {/* Mobile Add Button - Only show on mobile screens */}
+              <button
+                type="button"
+                onClick={handleAddTagClick}
+                disabled={loading}
+                className={`
+                  sm:hidden px-4 py-2 text-sm rounded-lg font-medium transition-colors
+                  ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-black text-white hover:bg-gray-700 active:bg-gray-900 cursor-pointer"
+                  }
+                `}
+              >
+                Add
+              </button>
+            </div>
 
             {/* Tag Display */}
             <div className="flex flex-wrap gap-2">
