@@ -204,9 +204,6 @@ We welcome contributions to BlogSphere! If you'd like to contribute, please foll
 
 This project is licensed under the [MIT License](LICENSE).
 
-## 📬 Contact
-
-If you have any questions or suggestions, please feel free to contact us at [your-email@example.com](mailto:your-email@example.com).
 
 ## 💖 Thanks
 
