@@ -287,14 +287,18 @@ const AuthForm = ({ type }) => {
                     type="button"
                     onClick={handleGoogleAuth}
                     disabled={loading || googleLoading}
-                    className={`w-full flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 ${
+                    className={`w-full flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer ${
                       googleLoading ? "opacity-70" : ""
                     }`}
                   >
                     {googleLoading ? (
                       <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
-                      <img src={googleIcon} alt="Google" className="w-5 h-5" />
+                      <img
+                        src={googleIcon}
+                        alt="Google"
+                        className="w-5 h-5 cursor-pointer"
+                      />
                     )}
                     {googleLoading ? "Signing in..." : "Continue with Google"}
                   </Button>

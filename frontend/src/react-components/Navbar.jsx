@@ -131,12 +131,12 @@ const Navbar = ({ setCanReadBlog }) => {
           {!token && (
             <div className="flex items-center gap-3">
               <Link to={"/signin"}>
-                <Button variant="ghost" className="text-sm">
+                <Button variant="ghost" className="text-sm cursor-pointer">
                   Sign In
                 </Button>
               </Link>
               <Link to={"/signup"}>
-                <Button className="text-sm">Sign Up</Button>
+                <Button className="text-sm cursor-pointer">Sign Up</Button>
               </Link>
             </div>
           )}
@@ -253,7 +253,7 @@ const Navbar = ({ setCanReadBlog }) => {
             </div>
           ) : (
             /* Sign in/up buttons for non-authenticated users */
-            <div className="flex gap-3">
+            <div className="flex gap-3 cursor-pointer">
               <Link to="/signin" onClick={() => setMenuOpen(false)}>
                 <Button
                   variant="outline"
@@ -263,7 +263,7 @@ const Navbar = ({ setCanReadBlog }) => {
                 </Button>
               </Link>
               <Link to="/signup" onClick={() => setMenuOpen(false)}>
-                <Button className="w-full text-sm rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">
+                <Button className="w-full text-sm rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 cursor-pointer">
                   Sign Up
                 </Button>
               </Link>
