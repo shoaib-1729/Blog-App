@@ -8,7 +8,7 @@ import logo from "../../public/logo.svg";
 import { logout } from "../utils/userSlice.js";
 import toast from "react-hot-toast";
 
-const Navbar = () => {
+const Navbar = ({ setCanReadBlog }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,10 +34,21 @@ const Navbar = () => {
 
   function handleLogout() {
     dispatch(logout());
+    setCanReadBlog(false);
     setShowPopup(false);
     toast.success("Logged out");
     navigate("/");
   }
+
+  // Search function for mobile/tablet
+  const handleMobileSearch = () => {
+    if (searchQuery.trim()) {
+      setMenuOpen(false);
+      const encodedQuery = searchQuery.trim().split(" ").join("+");
+      navigate(`/search-query?q=${encodedQuery}`);
+      setSearchQuery("");
+    }
+  };
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -74,10 +85,6 @@ const Navbar = () => {
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
-
-if(!token){
-  return null
-}
 
   return (
     <nav className="border-b drop-shadow">
@@ -121,6 +128,19 @@ if(!token){
             <i className="fi fi-ts-file-edit text-base" /> Write
           </button>
 
+          {!token && (
+            <div className="flex items-center gap-3">
+              <Link to={"/signin"}>
+                <Button variant="ghost" className="text-sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to={"/signup"}>
+                <Button className="text-sm">Sign Up</Button>
+              </Link>
+            </div>
+          )}
+
           {token && (
             <div
               ref={avatarRef}
@@ -155,59 +175,86 @@ if(!token){
       </div>
 
       {/* Mobile Dropdown Menu */}
-      {token && menuOpen && (
+      {menuOpen && (
         <div className="md:hidden bg-white dark:bg-black border-t dark:border-gray-700 px-4 pb-4 space-y-2">
-          <div className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0 focus:outline-none"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (searchQuery.trim() && e.code === "Enter") {
-                  setMenuOpen((prev) => !prev);
-                  const encodedQuery = searchQuery.trim().split(" ").join("+");
-                  navigate(`/search-query?q=${encodedQuery}`);
-                }
-              }}
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-              <i className="fi fi-rs-search" />
+          {/* Search for authenticated users - Mobile/Tablet with Search Button */}
+          {token && (
+            <div className="relative w-full flex gap-2 mt-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0 focus:outline-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    // Only allow Enter on large screens (lg and above)
+                    if (
+                      searchQuery.trim() &&
+                      e.code === "Enter" &&
+                      window.innerWidth >= 1024
+                    ) {
+                      handleMobileSearch();
+                    }
+                  }}
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                  <i className="fi fi-rs-search" />
+                </div>
+              </div>
+              {/* Search Button for Mobile/Tablet */}
+              <button
+                onClick={handleMobileSearch}
+                disabled={!searchQuery.trim()}
+                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <i className="fi fi-rs-search" />
+              </button>
             </div>
-          </div>
+          )}
 
-          <Link
-            to="/add-blog"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-          >
-            <i className="fi fi-ts-file-edit text-base" /> Write
-          </Link>
+          {/* Write button for authenticated users */}
+          {token && (
+            <Link
+              to="/add-blog"
+              onClick={() => setMenuOpen(false)}
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
+            >
+              <i className="fi fi-ts-file-edit text-base" /> Write
+            </Link>
+          )}
 
+          {/* User menu for authenticated users */}
           {token ? (
             <div className="space-y-2">
               <Link
                 to={`/@${username}`}
+                onClick={() => setMenuOpen(false)}
                 className="block text-sm text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
               >
                 <i className="fi fi-ts-circle-user"></i> Profile
               </Link>
               <Link
                 to="/edit-profile"
+                onClick={() => setMenuOpen(false)}
                 className="block text-sm text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
               >
                 <i className="fi fi-ts-user-pen"></i> Edit Profile
               </Link>
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  handleLogout();
+                  setMenuOpen(false);
+                }}
                 className="text-sm text-red-500 hover:text-red-600 cursor-pointer"
               >
                 <i className="fi fi-ts-sign-out-alt"></i> Logout
               </button>
             </div>
           ) : (
+            /* Sign in/up buttons for non-authenticated users */
             <div className="flex gap-3">
-              <Link to="/signin">
+              <Link to="/signin" onClick={() => setMenuOpen(false)}>
                 <Button
                   variant="outline"
                   className="w-full text-sm rounded-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -215,7 +262,7 @@ if(!token){
                   Sign In
                 </Button>
               </Link>
-              <Link to="/signup">
+              <Link to="/signup" onClick={() => setMenuOpen(false)}>
                 <Button className="w-full text-sm rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">
                   Sign Up
                 </Button>

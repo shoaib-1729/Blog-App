@@ -1,9 +1,7 @@
-import { useNavigate } from "react-router-dom";
 import heroIllustration from "../assets/hero-illustration.png";
+// import {  useSelector } from "react-redux";
 
-const HeroPage = () => {
-  const navigate = useNavigate();
-
+const HeroPage = ({ setCanReadBlog }) => {
   return (
     <div className="bg-[#F5F4F0] min-h-screen flex flex-col overflow-x-hidden">
       {/* Hero Section */}
@@ -18,7 +16,7 @@ const HeroPage = () => {
             the globe.
           </p>
           <button
-            onClick={() => navigate("/signin")}
+            onClick={() => setCanReadBlog((prev) => !prev)}
             className="mt-6 bg-black text-white px-6 py-3 rounded-full text-base sm:text-lg hover:bg-gray-800 transition-colors duration-200 cursor-pointer font-medium"
           >
             Get Started

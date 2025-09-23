@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import AuthForm from "./pages/AuthForm.jsx";
 import Navbar from "./react-components/Navbar.jsx";
+import { useState } from "react";
 import HomePage from "./pages/HomePage.jsx";
 import AddBlog from "./react-components/AddBlog.jsx";
 import BlogPage from "./pages/BlogPage.jsx";
@@ -20,6 +21,8 @@ import ForgetPassword from "./react-components/ForgetPassword.jsx";
 function App() {
   const location = useLocation();
 
+  const [canReadBlog, setCanReadBlog] = useState(false);
+
   // Function to check if navbar should be hidden
   const shouldHideNavbar = () => {
     const hiddenRoutes = ["/add-blog", "/signin", "/signup"];
@@ -38,6 +41,11 @@ function App() {
       return true;
     }
 
+    // hero page par bhi hide karo jaha canReadBlog state false hoga
+    if (!canReadBlog && pathname === "/") {
+      return true;
+    }
+
     return false;
   };
 
@@ -45,12 +53,20 @@ function App() {
     <div className="min-h-screen flex flex-col theme-bg theme-text">
       {/* Navbar stays at the top */}
       {/* add-blog, signin, signup, reset-password routes par navbar matt dikhao */}
-      {!shouldHideNavbar() && <Navbar />}
+      {!shouldHideNavbar() && <Navbar setCanReadBlog={setCanReadBlog} />}
 
       {/* Main content will take the remaining space */}
       <div className="flex-1">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <HomePage
+                canReadBlog={canReadBlog}
+                setCanReadBlog={setCanReadBlog}
+              />
+            }
+          />
           <Route
             path="/add-blog"
             element={
@@ -85,54 +101,12 @@ function App() {
             }
           />
           <Route path="/forget-password" element={<ForgetPassword />} />
-          <Route
-            path="/:username"
-            element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            }
-          >
-            <Route
-              index
-              element={
-                <ProtectedRoute>
-                  <UserProfileBlogList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="saved-blogs"
-              element={
-                <ProtectedRoute>
-                  <UserProfileBlogList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="liked-blogs"
-              element={
-                <ProtectedRoute>
-                  <UserProfileBlogList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="draft-blogs"
-              element={
-                <ProtectedRoute>
-                  <UserProfileBlogList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="about"
-              element={
-                <ProtectedRoute>
-                  <AboutPage />
-                </ProtectedRoute>
-              }
-            />
+          <Route path="/:username" element={<UserProfile />}>
+            <Route index element={<UserProfileBlogList />} />
+            <Route path="saved-blogs" element={<UserProfileBlogList />} />
+            <Route path="liked-blogs" element={<UserProfileBlogList />} />
+            <Route path="draft-blogs" element={<UserProfileBlogList />} />
+            <Route path="about" element={<AboutPage />} />
           </Route>
 
           <Route
@@ -175,14 +149,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/tag/:tagName"
-            element={
-              <ProtectedRoute>
-                <TagPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/tag/:tagName" element={<TagPage />} />
         </Routes>
       </div>
     </div>

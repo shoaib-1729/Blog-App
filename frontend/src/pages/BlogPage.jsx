@@ -279,7 +279,6 @@ const BlogPage = () => {
         toast.error("Request cancelled due to navigation/change");
       } else {
         // yaha status code check karo
-        // yaha status code check karo
         if (err.response) {
           // blog deleted/not found
           setLoadingTimeout(true);
@@ -310,6 +309,9 @@ const BlogPage = () => {
 
   async function handleLike() {
     try {
+      if (!token) {
+        toast.error("You need to sign in first to like a blog!");
+      }
       if (token) {
         const res = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/blogs/like/${blog._id}`,

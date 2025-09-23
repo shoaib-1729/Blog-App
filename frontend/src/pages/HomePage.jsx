@@ -8,12 +8,13 @@ import { useSelector } from "react-redux";
 import { formatDate } from "../utils/formatDate";
 import HeroPage from "./HeroPage";
 
-const HomePage = () => {
+const HomePage = ({canReadBlog, setCanReadBlog}) => {
   const [pageNo, setPageNo] = useState(1);
-  const { token, username, savedBlogs, likedBlogs } = useSelector(
+  // const [canReadBlog, setCanReadBlog] = useState(false);
+
+  const { username, savedBlogs, likedBlogs } = useSelector(
     (state) => state.user
   );
- 
 
   const { data, hasMoreBlogs } = usePagination(
     "blogs",
@@ -34,8 +35,8 @@ const HomePage = () => {
     )
   );
 
-  return !token ? (
-    <HeroPage />
+  return !canReadBlog ? (
+    <HeroPage setCanReadBlog={setCanReadBlog} />
   ) : (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="relative flex flex-col-reverse md:flex-row gap-8">
@@ -58,7 +59,7 @@ const HomePage = () => {
 
         {/* Sidebar */}
         <aside className="w-full md:w-1/3 md:pl-8 flex flex-col gap-10">
-        {/* Tags */}
+          {/* Tags */}
           <div className="order-1 md:order-1">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">
               Recommended Tags
@@ -83,7 +84,7 @@ const HomePage = () => {
                 Your Saved Blogs
               </h2>
 
-            {savedBlogs?.length === 0 ? (
+              {savedBlogs?.length === 0 ? (
                 <p className="text-gray-500 text-sm">No saved blogs yet.</p>
               ) : (
                 <div className="space-y-4">

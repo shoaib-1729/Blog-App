@@ -4,6 +4,9 @@ import axios from "axios";
 
 export async function handleSaveBlog(blogId, token, setIsSaved, dispatch) {
   try {
+    if (!token) {
+      toast.error("You need to sign in first to save a blog!");
+    }
     if (token) {
       setIsSaved((prev) => !prev);
       const res = await axios.patch(
@@ -24,6 +27,9 @@ export async function handleSaveBlog(blogId, token, setIsSaved, dispatch) {
 
 export async function handleDeleteBlog(blogId, token, dispatch) {
   try {
+    if (!token) {
+      toast.error("You need to sign in first to delete a blog!");
+    }
     if (token) {
       const res = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/blogs/${blogId}`,
@@ -47,6 +53,9 @@ export async function handleDeleteUser(
   dispatch
 ) {
   try {
+    if (!token) {
+      toast.error("You need to sign in first to delete your account!");
+    }
     if (token) {
       const res = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/users`,
@@ -89,6 +98,9 @@ export async function handleFollowCreator(
   dispatch
 ) {
   try {
+    if (!token) {
+      toast.error("You need to sign in first to follow a creator!");
+    }
     if (token) {
       // Optimistic update - pehle UI update karo
       setIsFollowCreator((prev) => !prev);

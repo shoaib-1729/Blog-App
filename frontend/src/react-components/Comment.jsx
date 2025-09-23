@@ -36,18 +36,24 @@ const Comment = () => {
 
   async function handleComment() {
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${id}`,
-        { comment },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      dispatch(addNewComment(res.data.newComment));
-      toast.success(res.data.message);
-      setComment(""); // Clear input
+      if (!token) {
+        toast.error("You need to sign in first to add comment!");
+      }
+
+      if (token) {
+        const res = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/blogs/comment/${id}`,
+          { comment },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        dispatch(addNewComment(res.data.newComment));
+        toast.success(res.data.message);
+        setComment(""); // Clear input
+      }
     } catch (err) {
       toast.error(err.response.data.message);
     }
