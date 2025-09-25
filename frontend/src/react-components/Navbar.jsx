@@ -8,7 +8,7 @@ import logo from "../../public/logo.svg";
 import { logout } from "../utils/userSlice.js";
 import toast from "react-hot-toast";
 
-const Navbar = ({ setCanReadBlog }) => {
+const Navbar = ({ setShowHeroPage }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +34,10 @@ const Navbar = ({ setCanReadBlog }) => {
 
   function handleLogout() {
     dispatch(logout());
-    setCanReadBlog(false);
+    // hero page visited ko false kardo local storage pr
+    localStorage.setItem("visitedHeroPage", "false");
+    // hero page dikhao
+    setShowHeroPage(true);
     setShowPopup(false);
     toast.success("Logged out");
     navigate("/");
@@ -97,27 +100,25 @@ const Navbar = ({ setCanReadBlog }) => {
         </div>
 
         {/* Middle: Search (hidden on mobile) */}
-        {token && (
-          <div className="hidden md:block w-64 relative">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (searchQuery.trim() && e.code === "Enter") {
-                  const encodedQuery = searchQuery.trim().split(" ").join("+");
-                  navigate(`/search-query?q=${encodedQuery}`);
-                  setSearchQuery("");
-                }
-              }}
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-              <i className="fi fi-rs-search" />
-            </div>
+        <div className="hidden md:block w-64 relative">
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (searchQuery.trim() && e.code === "Enter") {
+                const encodedQuery = searchQuery.trim().split(" ").join("+");
+                navigate(`/search-query?q=${encodedQuery}`);
+                setSearchQuery("");
+              }
+            }}
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+            <i className="fi fi-rs-search" />
           </div>
-        )}
+        </div>
 
         {/* Right: Nav Links */}
         <div className="hidden md:flex items-center gap-6">
@@ -178,40 +179,38 @@ const Navbar = ({ setCanReadBlog }) => {
       {menuOpen && (
         <div className="md:hidden bg-white dark:bg-black border-t dark:border-gray-700 px-4 pb-4 space-y-2">
           {/* Search for authenticated users - Mobile/Tablet with Search Button */}
-          {token && (
-            <div className="relative w-full flex gap-2 mt-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0 focus:outline-none"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    // Only allow Enter on large screens (lg and above)
-                    if (
-                      searchQuery.trim() &&
-                      e.code === "Enter" &&
-                      window.innerWidth >= 1024
-                    ) {
-                      handleMobileSearch();
-                    }
-                  }}
-                />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-                  <i className="fi fi-rs-search" />
-                </div>
-              </div>
-              {/* Search Button for Mobile/Tablet */}
-              <button
-                onClick={handleMobileSearch}
-                disabled={!searchQuery.trim()}
-                className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              >
+          <div className="relative w-full flex gap-2 mt-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 focus:ring-0 focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  // Only allow Enter on large screens (lg and above)
+                  if (
+                    searchQuery.trim() &&
+                    e.code === "Enter" &&
+                    window.innerWidth >= 1024
+                  ) {
+                    handleMobileSearch();
+                  }
+                }}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
                 <i className="fi fi-rs-search" />
-              </button>
+              </div>
             </div>
-          )}
+            {/* Search Button for Mobile/Tablet */}
+            <button
+              onClick={handleMobileSearch}
+              disabled={!searchQuery.trim()}
+              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              <i className="fi fi-rs-search" />
+            </button>
+          </div>
 
           {/* Write button for authenticated users */}
           {token && (

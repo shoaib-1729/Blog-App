@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { removeSelectedBlog } from "../utils/selectedBlogSlice";
 import DisplayBlog from "../react-components/DisplayBlog";
 import { usePagination } from "../hooks/usePagination";
@@ -7,16 +7,18 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatDate } from "../utils/formatDate";
 import HeroPage from "./HeroPage";
+import HomePageShimmer from "../react-components/HomePageShimmer"; // Import shimmer component
 
-const HomePage = ({canReadBlog, setCanReadBlog}) => {
+const HomePage = ({ showHeroPage, setShowHeroPage, handleGetStarted }) => {
   const [pageNo, setPageNo] = useState(1);
-  // const [canReadBlog, setCanReadBlog] = useState(false);
+  const [trendingTags, setTrendingTags] = useState([]);
 
   const { username, savedBlogs, likedBlogs } = useSelector(
     (state) => state.user
   );
 
-  const { data, hasMoreBlogs } = usePagination(
+  const { data, _, hasMoreBlogs, isLoading } = usePagination(
+    // Add isLoading from hook
     "blogs",
     undefined,
     {},
@@ -25,24 +27,68 @@ const HomePage = ({canReadBlog, setCanReadBlog}) => {
     4
   );
 
-  // saare tag nikaalo savedBlogs mei se, duplicate hata do
-  const recommendedTags = Array.from(
-    new Set(
-      (data || savedBlogs || likedBlogs || [])
-        .filter((blog) => blog?.tag)
-        // null/undefined blog skip karo
-        .flatMap((blog) => blog.tag)
-    )
-  );
+  // Infinite scroll
+  useEffect(() => {
+    function handleScroll() {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const fullHeight = document.documentElement.scrollHeight;
 
-  return !canReadBlog ? (
-    <HeroPage setCanReadBlog={setCanReadBlog} />
-  ) : (
+      // scroll near bottom & more blogs available
+      if (scrollTop + windowHeight >= fullHeight - 200 && hasMoreBlogs) {
+        setPageNo((prev) => prev + 1);
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMoreBlogs]);
+
+  // show hero page logic
+  useEffect(() => {
+    const visitedHero = localStorage.getItem("visitedHeroPage");
+    if (!visitedHero) {
+      // pehli baar Hero dikhana
+      setShowHeroPage(true);
+    } else {
+      // pehle visit ho chuka, seedha blogs
+      setShowHeroPage(false);
+    }
+  }, []);
+
+  // trending tags nikaalo
+  useEffect(() => {
+    if (data?.length > 0 && trendingTags.length === 0) {
+      const freqMap = {};
+      data.forEach((blog) => {
+        blog?.tag?.forEach((t) => {
+          const tag = t.trim().toLowerCase();
+          freqMap[tag] = (freqMap[tag] || 0) + 1;
+        });
+      });
+      const topTags = Object.entries(freqMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([tag]) => tag);
+      setTrendingTags(topTags);
+    }
+  }, [data]);
+
+  // showHeroPage true hai toh hero page dikhao
+  if (showHeroPage) {
+    return <HeroPage handleGetStarted={handleGetStarted} />;
+  }
+
+  // loading state par shimmer show karo
+  if (isLoading && (!data || data.length === 0)) {
+    return <HomePageShimmer />;
+  }
+
+  return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       <div className="relative flex flex-col-reverse md:flex-row gap-8">
         {/* Full-height vertical separator */}
         <div className="hidden md:block absolute top-0 bottom-0 left-2/3 w-px bg-gray-200" />
-
         {/* Main Blog Section */}
         <div className="w-full md:w-2/3 ">
           <div className="flex flex-col divide-y divide-gray-200 ">
@@ -62,13 +108,13 @@ const HomePage = ({canReadBlog, setCanReadBlog}) => {
           {/* Tags */}
           <div className="order-1 md:order-1">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Recommended Tags
+              Trending Tags
             </h2>
             <div className="flex flex-wrap gap-2">
-              {recommendedTags?.map((tag, index) => (
+              {trendingTags.map((tag, index) => (
                 <Link
                   key={index}
-                  to={`/tag/${tag?.trim()?.toLowerCase()}`}
+                  to={`/tag/${tag}`}
                   className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm hover:bg-gray-200 transition"
                 >
                   {tag}

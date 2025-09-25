@@ -5,25 +5,28 @@
 @custom-variant dark (&:is(.dark *));
 
 /* index.css */
-html, body {
-   height: 100%;
+html,
+body {
+  height: 100%;
   margin: 0;
   box-sizing: border-box;
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
-
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
-
 
 #root {
   height: 100%;
 }
-
 
 :root {
   --radius: 0.625rem;
@@ -58,7 +61,7 @@ html, body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-   /* Light theme variables */
+  /* Light theme variables */
   --bg-primary: #ffffff;
   --bg-secondary: #f8f9fa;
   --text-primary: #000000;
@@ -101,7 +104,7 @@ html, body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-    /* Dark theme variables */
+  /* Dark theme variables */
   --bg-primary: #000000;
   --bg-secondary: #111827;
   --text-primary: #ffffff;
@@ -111,7 +114,6 @@ html, body {
   --card-bg: #1f2937;
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.4);
 }
-
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -159,6 +161,3 @@ html, body {
     @apply bg-background text-foreground;
   }
 }
-
-
-

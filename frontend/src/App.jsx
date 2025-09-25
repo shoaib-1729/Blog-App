@@ -21,7 +21,12 @@ import ForgetPassword from "./react-components/ForgetPassword.jsx";
 function App() {
   const location = useLocation();
 
-  const [canReadBlog, setCanReadBlog] = useState(false);
+  const [showHeroPage, setShowHeroPage] = useState(false);
+
+  const handleGetStarted = () => {
+    localStorage.setItem("visitedHeroPage", "true");
+    setShowHeroPage(false);
+  };
 
   // Function to check if navbar should be hidden
   const shouldHideNavbar = () => {
@@ -41,8 +46,8 @@ function App() {
       return true;
     }
 
-    // hero page par bhi hide karo jaha canReadBlog state false hoga
-    if (!canReadBlog && pathname === "/") {
+    // hero page par navbar hide karo
+    if (showHeroPage && pathname === "/") {
       return true;
     }
 
@@ -53,7 +58,7 @@ function App() {
     <div className="min-h-screen flex flex-col theme-bg theme-text">
       {/* Navbar stays at the top */}
       {/* add-blog, signin, signup, reset-password routes par navbar matt dikhao */}
-      {!shouldHideNavbar() && <Navbar setCanReadBlog={setCanReadBlog} />}
+      {!shouldHideNavbar() && <Navbar setShowHeroPage={setShowHeroPage} />}
 
       {/* Main content will take the remaining space */}
       <div className="flex-1">
@@ -62,8 +67,9 @@ function App() {
             path="/"
             element={
               <HomePage
-                canReadBlog={canReadBlog}
-                setCanReadBlog={setCanReadBlog}
+                showHeroPage={showHeroPage}
+                setShowHeroPage={setShowHeroPage}
+                handleGetStarted={handleGetStarted}
               />
             }
           />
@@ -141,14 +147,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/search-query"
-            element={
-              <ProtectedRoute>
-                <SearchedBlog />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/search-query" element={<SearchedBlog />} />
           <Route path="/tag/:tagName" element={<TagPage />} />
         </Routes>
       </div>

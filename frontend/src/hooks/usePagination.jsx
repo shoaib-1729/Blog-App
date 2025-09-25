@@ -14,6 +14,7 @@ export const usePagination = (
   const [data, setData] = useState([]);
   const [blogCount, setBlogCount] = useState(0);
   const [hasMoreBlogs, setHasMoreBlogs] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
 
   const prevQueryRef = useRef(JSON.stringify(queryParams));
@@ -39,6 +40,7 @@ export const usePagination = (
   // Main blog fetch
   useEffect(() => {
     async function fetchBlog() {
+      setIsLoading(true);
       try {
         const res = await axios.get(
           path === "tag"
@@ -54,11 +56,13 @@ export const usePagination = (
       } catch (err) {
         toast.error("Error fetching blog:", err);
         setData([]);
+      } finally {
+        setIsLoading(false);
       }
     }
 
     fetchBlog();
   }, [JSON.stringify(queryParams), pageNo]);
 
-  return { data, blogCount, hasMoreBlogs };
+  return { data, blogCount, hasMoreBlogs, isLoading };
 };
