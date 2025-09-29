@@ -35,7 +35,7 @@ const Navbar = ({ setShowHeroPage }) => {
   function handleLogout() {
     dispatch(logout());
     // hero page visited ko false kardo local storage pr
-    localStorage.setItem("visitedHeroPage", "false");
+    localStorage.setItem("visitedHeroPage", false);
     // hero page dikhao
     setShowHeroPage(true);
     setShowPopup(false);

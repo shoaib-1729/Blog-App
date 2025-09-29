@@ -24,7 +24,7 @@ function App() {
   const [showHeroPage, setShowHeroPage] = useState(false);
 
   const handleGetStarted = () => {
-    localStorage.setItem("visitedHeroPage", "true");
+    localStorage.setItem("visitedHeroPage", true);
     setShowHeroPage(false);
   };
 
