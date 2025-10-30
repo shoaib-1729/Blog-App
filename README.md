@@ -186,9 +186,125 @@ BlogSphere/
 └── package.json
 ```
 
+
+
+### 🔐 Authentication & User Routes
+
+
+| Method | Endpoint | Description |
+|:-------|:----------|:-------------|
+| `POST` | `/signup` | Create a new user account |
+| `POST` | `/signin` | Login and receive JWT token |
+| `GET` | `/users` | Fetch all users |
+| `GET` | `/users/:username` | Get user by username |
+| `PATCH` | `/users/:id` | Update user profile (auth required) |
+| `DELETE` | `/users/` | Delete logged-in user |
+| `GET` | `/users/check-username/:username` | Check username availability |
+| `GET` | `/verify-email/:verificationToken` | Verify user email |
+| `POST` | `/google-auth` | Google OAuth login |
+| `PATCH` | `/follow/:creatorId` | Follow/unfollow a creator |
+| `POST` | `/users/:username/settings` | Update account settings |
+| `PUT` | `/auth/reset-password/:id` | Reset password (auth required) |
+| `PUT` | `/auth/forget-password` | Send password reset link |
+
+
+
+### 📝 Blog Routes
+
+| Method | Endpoint | Description |
+|:-------|:----------|:-------------|
+| `GET` | `/blogs` | Get all blogs (with filters/pagination) |
+| `GET` | `/blogs/:id` | Fetch specific blog details |
+| `POST` | `/blogs` | Create a blog post (auth + image upload) |
+| `PUT` | `/blogs/:id` | Edit a blog post (author only) |
+| `DELETE` | `/blogs/:id` | Delete a blog post (author only) |
+| `POST` | `/blogs/like/:id` | Like/unlike a blog |
+| `PATCH` | `/save-blog/:id` | Save/unsave a blog |
+| `GET` | `/search-query` | Search blogs |
+| `GET` | `/tag/:tagName` | Filter blogs by tag |
+
+
+
+
+### 💬 Comment Routes
+
+| Method | Endpoint | Description |
+|:-------|:----------|:-------------|
+| `POST` | `/blogs/comment/:id` | Add a comment to a blog |
+| `PUT` | `/blogs/edit-comment/:id` | Edit comment |
+| `DELETE` | `/blogs/comment/:id` | Delete comment |
+| `PATCH` | `/blogs/like-comment/:id` | Like/unlike a comment |
+| `POST` | `/comment/:parentCommentId/:id` | Reply to a comment (nested) |  
+
+
+
+
+
+
+
+## 🧱 Scaling the Frontend–Backend Integration for Production 
+
+
+
+To ensure **BloomVerse** can handle real-world usage efficiently, the app’s architecture and deployment pipeline are designed with **scalability**, **maintainability**, and **performance** in mind.
+
+
+
+### 🔹 1. Frontend Optimization
+
+- **Code Splitting & Lazy Loading:** Reduces bundle size by loading components on demand.  
+- **CDN Caching:** Static assets served via **Vercel CDN** for global fast delivery.  
+- **Environment-Based Config:** Frontend consumes API via `VITE_BACKEND_URL`, supporting development, staging, and production environments.  
+- **Responsive UI:** Built with **Tailwind CSS** and **Shadcn UI**, ensuring smooth rendering across all screen sizes and devices.  
+
+
+
+### 🔹 2. Backend Scalability
+
+- **Modular Architecture:** Controllers, routes, and middleware are fully modular, allowing future conversion into microservices.  
+- **MongoDB Atlas:** Provides automatic scaling, backups, and global distribution.  
+- **Load Balancing:** Easily scalable horizontally using **NGINX** or **AWS Load Balancer**.  
+- **Media Handling:** **Cloudinary CDN** offloads image delivery, reducing backend load.  
+- **Security:** Implemented **bcrypt** for password hashing, **JWT** for secure authentication, and environment-based secret management.  
+
+### 🔹 3. Deployment & CI/CD
+
+- **Frontend:** Deployed on **Vercel** with automatic caching, build optimization, and instant rollback capabilities.  
+- **Backend:** Hosted on **Render**, with potential to migrate to **Docker** or **AWS EC2** for advanced scaling.    
+- **Error Monitoring:** Logging middleware using **Winston** and error tracking with **Sentry** ensure scalable observability. 
+
+
+### 🔹 4. Future Scalability Plan
+
+- Introduce **Redis caching** for trending posts and session management.  
+- Implement **message queues** (e.g., Kafka or RabbitMQ) for asynchronous tasks like email delivery and notifications. 
+- **CI/CD:** Easy integration with **GitHub Actions** for automated testing and continuous deployment. 
+- Containerize the app using **Docker**, and deploy via **Kubernetes** for automatic load balancing and scaling.  
+- Add **GraphQL API** support for efficient and flexible data querying.  
+
+
+
+> 💡 With this architecture, **BloomVerse** can scale both **vertically** (by increasing resources) and **horizontally** (by adding nodes), while maintaining high performance, security, and reliability.
+
+
 ## 📸 Screenshots
 
-(Add screenshots of your application here to showcase its features and design.)
+![Hero Page](https://media.licdn.com/dms/image/v2/D4E22AQHQ5vveUQFhkg/feedshare-shrink_1280/B4EZlsILEAHEAw-/0/1758455706976?e=1763596800&v=beta&t=KsljFfrptFd77k8_kvksROI-BtB7OL2E_QTHnFAQ_1g)
+
+![Signin Page](https://media.licdn.com/dms/image/v2/D4E22AQFkHTC2JLCC9g/feedshare-shrink_1280/B4EZlsILD2IQAs-/0/1758455706637?e=1763596800&v=beta&t=Bhjz-EmIkVy1Vf3A1i7mZBUhlpJ0V_UT5BF-sKm0eAE)
+
+
+![Home Page](https://media.licdn.com/dms/image/v2/D4E22AQH6aN2vczaPkQ/feedshare-shrink_1280/B4EZlsILEXGoAs-/0/1758455707290?e=1763596800&v=beta&t=zIrGUKdSD9r4v6UfrXs7zuvM0QWQ9lDlZNgbOElVeTs)
+
+![User Profile Page](https://media.licdn.com/dms/image/v2/D4E22AQFK6b9ZwInwVA/feedshare-shrink_1280/B4EZlsILEgKgAw-/0/1758455707236?e=1763596800&v=beta&t=y3J7yq8wGdecgSCeUYQIopvZtL7x20j61uwM61JdoD4)
+
+
+![Edit User Profile Page](https://media.licdn.com/dms/image/v2/D4E22AQFfg2pFbSAJQQ/feedshare-shrink_1280/B4EZlsILEWKcAs-/0/1758455706854?e=1763596800&v=beta&t=WCDeRuiEuEPvPvg64cZFGwL2u8_H9X6PcQA4yKn07yA)
+
+![Add Blog Page](https://media.licdn.com/dms/image/v2/D4E22AQH-vFlo04owTw/feedshare-shrink_1280/B4EZlsILEIKUAw-/0/1758455706647?e=1763596800&v=beta&t=coyAUFKLL4GNFhPNGn17PCoZidsOW8dze2Dt1Sxbr4A)
+
+
+
 
 ## 🤝 Contributing
 
